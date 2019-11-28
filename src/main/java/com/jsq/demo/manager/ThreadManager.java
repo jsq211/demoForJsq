@@ -1,0 +1,60 @@
+package com.jsq.demo.manager;
+
+import com.alibaba.fastjson.JSON;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.jsq.demo.InvokeRunnable;
+import com.jsq.demo.common.annotation.LoggerAnnotation;
+import com.jsq.demo.pojo.dto.ThreadPoolParamDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+
+import java.util.Iterator;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * 线程池调用类
+ * 默认线程池构造参数为 coreSize = 1 maxSize = 2  线程持续时间180s  默认线程执行顺序为链表
+ * 需要传入进入线程池中的具体方法参数 包括 调用类 className  调用方法 method  调用入参数据 Object...
+ * @author jsq
+ */
+@Component
+public class ThreadManager {
+
+    private static final Logger logger = LoggerFactory.getLogger(ThreadManager.class);
+
+    /**
+     * 调用线程池参数
+     * @param threadPoolParam
+     * @return
+     */
+    @LoggerAnnotation
+    public Map<String, Object> getThreadResult(ThreadPoolParamDTO threadPoolParam) {
+        Map<String, Object> result = new ConcurrentHashMap<>(threadPoolParam.getParamList().size());
+        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+                null == threadPoolParam.getCorePoolSize()? 1:threadPoolParam.getCorePoolSize(),
+                null == threadPoolParam.getMaximumPoolSize()?2:threadPoolParam.getMaximumPoolSize(),
+                null == threadPoolParam.getKeepAliveTime()? 180L:threadPoolParam.getKeepAliveTime(),
+                null == threadPoolParam.getUnit()? TimeUnit.SECONDS:threadPoolParam.getUnit(),
+                null == threadPoolParam.getWorkQueue()? new LinkedBlockingQueue() :threadPoolParam.getWorkQueue(),
+                null == threadPoolParam.getThreadFactory()?
+                        new ThreadFactoryBuilder().setNameFormat("default-thread-%d").build():threadPoolParam.getThreadFactory());
+        try {
+            Iterator<ThreadPoolParamDTO.ThreadParam> iterator = threadPoolParam.getParamList().iterator();
+            while (iterator.hasNext()) {
+                ThreadPoolParamDTO.ThreadParam threadParam = iterator.next();
+                threadPoolExecutor.execute(new InvokeRunnable(threadParam, result));
+            }
+        }catch (Exception e ){
+            logger.error("线程池调用失败：{}", JSON.toJSONString(e.getMessage()));
+        }
+
+        threadPoolExecutor.shutdown();
+        return result;
+    }
+
+}

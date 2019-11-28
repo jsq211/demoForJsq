@@ -1,0 +1,23 @@
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/pipeline?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&&useSSL=false&amp&serverTimezone=GMT%2B8
+    username: root
+    password: admin
+  jackson:
+    serialization:
+      indent_output: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:  health,info,beans # 增加容器信息
+mybatis:
+  config-location:
+    classpath: mybatis-config.xml
+  mapper-locations: classpath*:mybatis/**.xml
+
+server:
+  port: 8047

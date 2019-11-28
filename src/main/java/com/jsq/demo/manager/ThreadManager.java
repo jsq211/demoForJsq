@@ -8,13 +8,12 @@ import com.jsq.demo.pojo.dto.ThreadPoolParamDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * 线程池调用类
@@ -43,11 +42,16 @@ public class ThreadManager {
                 null == threadPoolParam.getWorkQueue()? new LinkedBlockingQueue() :threadPoolParam.getWorkQueue(),
                 null == threadPoolParam.getThreadFactory()?
                         new ThreadFactoryBuilder().setNameFormat("default-thread-%d").build():threadPoolParam.getThreadFactory());
+        if (CollectionUtils.isEmpty(threadPoolParam.getParamList())){
+            return result;
+        }
         try {
             Iterator<ThreadPoolParamDTO.ThreadParam> iterator = threadPoolParam.getParamList().iterator();
+            CountDownLatch countDownLatch =new CountDownLatch(threadPoolParam.getParamList().size() - 1);
             while (iterator.hasNext()) {
                 ThreadPoolParamDTO.ThreadParam threadParam = iterator.next();
-                threadPoolExecutor.execute(new InvokeRunnable(threadParam, result));
+                threadPoolExecutor.execute(new InvokeRunnable(countDownLatch,threadParam, result));
+
             }
         }catch (Exception e ){
             logger.error("线程池调用失败：{}", JSON.toJSONString(e.getMessage()));

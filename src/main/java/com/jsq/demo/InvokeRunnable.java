@@ -9,6 +9,7 @@ import org.springframework.beans.BeansException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * 线程方法调用
@@ -22,9 +23,11 @@ public class InvokeRunnable implements Runnable {
 
     private Map<String, Object>  result;
 
-    public InvokeRunnable(ThreadPoolParamDTO.ThreadParam threadParam,Map<String, Object> result) {
+    private CountDownLatch countDownLatch;
+    public InvokeRunnable(CountDownLatch countDownLatch,ThreadPoolParamDTO.ThreadParam threadParam,Map<String, Object> result) {
         this.threadParam = threadParam;
         this.result = result;
+        this.countDownLatch = countDownLatch;
     }
 
     /**
@@ -50,6 +53,8 @@ public class InvokeRunnable implements Runnable {
             logger.error("调用对象方法失败，失败信息：{}", JSON.toJSONString(e.getMessage()));
         } catch (InvocationTargetException e) {
             logger.error("获取对象出参失败，失败信息：{}", JSON.toJSONString(e));
+        }finally {
+            countDownLatch.countDown();
         }
         return null;
     }

@@ -8,12 +8,15 @@ spring:
   jackson:
     serialization:
       indent_output: true
+  redis:
+    cache.clusterNodes: 127.0.0.1:6379
+    cache.commandTimeout: 5000
 
 management:
   endpoints:
     web:
       exposure:
-        include:  health,info,beans # 增加容器信息
+        include:  health,info,beans # 鍋ュ悍鐩戞帶淇℃伅
 mybatis:
   config-location:
     classpath: mybatis-config.xml

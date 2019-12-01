@@ -1,11 +1,14 @@
 package com.jsq.demo.test;
 
+import com.alibaba.fastjson.JSON;
+import com.jsq.demo.common.utils.CollectionUtil;
 import com.jsq.demo.pojo.po.PersonPO;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public class Test {
 
@@ -13,16 +16,15 @@ public class Test {
             Exception {
         PersonPO p1 = new PersonPO("111", "aaa");
         PersonPO p2 = new PersonPO("222", "bbb");
+        PersonPO p3 = new PersonPO("322", "bbb");
+        PersonPO p4 = new PersonPO("522", "bbb");
         List list = new ArrayList();
         list.add(p1);
         list.add(p2);
-        List<String> name = extraToListProperty(list,"name");
-        name.forEach(e->{
-            System.out.println(e);
-        });
-        PersonPO p3 = new PersonPO(null,null);
-        System.out.println("".contains("定金"));
-        System.out.println("12".equals(null));
+        list.add(p3);
+        list.add(p4);
+        Map<String, List> test = CollectionUtil.transferMapGroup(list,"name");
+        System.out.println(JSON.toJSONString(test));
     }
 
     public static void test(List list) throws Exception, IllegalAccessException {

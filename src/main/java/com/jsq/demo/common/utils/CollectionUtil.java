@@ -12,6 +12,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -39,19 +40,19 @@ public class CollectionUtil {
         for (Object obj : collection) {
             V value = (V) obj;
             try {
-                Field  field = obj.getClass().getDeclaredField(propertyName);
-                if (null == field){
+                Object object = PropertyUtils.getProperty(obj,propertyName);
+                if (null == object){
                     continue;
                 }
-                field.setAccessible(true);
-                K key = (K) field.get(obj);
-                if (null != key && trans){
-                    map.put(key,value);
+                if (null != object && trans){
+                    map.put((K) object,value);
                 }
-            } catch (NoSuchFieldException e) {
-                throw new RuntimeException("class has no such property name :"+ propertyName);
             } catch (IllegalAccessException e) {
                 throw new RuntimeException("class has no such property value :" + propertyName);
+            }  catch (InvocationTargetException e) {
+                throw new RuntimeException("get property value error :" + propertyName);
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException("class has no such property name :"+ propertyName);
             }
         }
         return map;
@@ -75,19 +76,19 @@ public class CollectionUtil {
         for (Object obj : collection) {
             V value = (V) obj;
             try {
-                Field  field = obj.getClass().getDeclaredField(propertyName);
-                if (null == field){
+                Object object = PropertyUtils.getProperty(obj,propertyName);
+                if (null == object){
                     continue;
                 }
-                field.setAccessible(true);
-                K key = (K) field.get(obj);
-                if (null != key){
-                    map.put(key,value);
+                if (null != object){
+                    map.put((K) object,value);
                 }
-            } catch (NoSuchFieldException e) {
-                throw new RuntimeException("class has no such property name :"+ propertyName);
             } catch (IllegalAccessException e) {
                 throw new RuntimeException("class has no such property value :" + propertyName);
+            }  catch (InvocationTargetException e) {
+                throw new RuntimeException("get property value error :" + propertyName);
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException("class has no such property name :"+ propertyName);
             }
         }
         return map;
@@ -98,7 +99,7 @@ public class CollectionUtil {
      * @param collection
      * @param propertyName
      */
-    private static void checkInputParam(Collection collection, String propertyName) {
+    private static void checkInputParam(Collection collection, String... propertyName) {
         if (CollectionUtils.isEmpty(collection)){
             throw new RuntimeException("collection is empty");
         }
@@ -120,16 +121,16 @@ public class CollectionUtil {
         List list = Lists.newArrayList();
         for (Object obj :collection) {
             try {
-                Field  field  = obj.getClass().getDeclaredField(propertyName);
-                if (null != field){
-                    field.setAccessible(true);
-                    E ele  = (E) field.get(obj);
-                    list.add(ele);
+                Object object = PropertyUtils.getProperty(obj,propertyName);
+                if (null != object){
+                    list.add(object);
                 }
-            } catch (NoSuchFieldException ex) {
-                throw new RuntimeException("fieldName is empty :" + propertyName);
             } catch (IllegalAccessException e) {
                 throw new RuntimeException("class has no such property value :" + propertyName);
+            }  catch (InvocationTargetException e) {
+                throw new RuntimeException("get property value error :" + propertyName);
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException("class has no such property name :"+ propertyName);
             }
         }
         return list;
@@ -151,12 +152,10 @@ public class CollectionUtil {
         List list = new ArrayList();
         for (Object obj :collection){
             try {
-                Field field = obj.getClass().getDeclaredField(propertyName);
-                if (null == field){
+                Object object = PropertyUtils.getProperty(obj,propertyName);
+                if (null == object){
                     continue;
                 }
-                field.setAccessible(true);
-                Object object = field.get(obj);
                 if (ans.containsKey(object)){
                     list = Lists.newArrayList(ans.get(object));
                     list.add(obj);
@@ -164,10 +163,12 @@ public class CollectionUtil {
                 }else {
                     ans.put((K) object,Lists.newArrayList(obj));
                 }
-            } catch (NoSuchFieldException ex) {
-                throw new RuntimeException("fieldName is empty :" + propertyName);
             } catch (IllegalAccessException e) {
                 throw new RuntimeException("class has no such property value :" + propertyName);
+            }  catch (InvocationTargetException e) {
+                throw new RuntimeException("get property value error :" + propertyName);
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException("class has no such property name :"+ propertyName);
             }
         }
         return ans;
@@ -239,13 +240,19 @@ public class CollectionUtil {
                 return 0;
             }
         });
+    }
+
+
+    public static void sortByMuiltProperty(List list ,Boolean sort,String... propertyName){
+        AtomicInteger atomicInteger = new AtomicInteger(propertyName.length);
 
     }
-    /**
-     * 为空判断
-     * @param collection
-     * @return
-     */
+
+        /**
+         * 为空判断
+         * @param collection
+         * @return
+         */
     public static Boolean isEmpty(@Nullable Collection collection){
         return (collection == null || collection.isEmpty());
     }

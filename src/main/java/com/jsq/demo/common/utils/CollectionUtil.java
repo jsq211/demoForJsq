@@ -9,7 +9,10 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -22,17 +25,17 @@ public class CollectionUtil {
      * 去除重复数据
      * @param collection 集合
      * @param propertyName 属性名
-     * @param translate 当Key重复时操作状态 True 覆盖 False 跳过,默认为true
+     * @param exchange 当Key重复时操作状态 True 覆盖 False 跳过,默认为true
      * @param <K>
      * @param <V>
-     * @jdk 1.8
+     * @jdk 1.7及以上
      * @return
      */
     @LoggerAnnotation
-    public static <K,V> Map<K,V> transferMap(Collection collection ,String propertyName,Boolean translate){
+    public static <K,V> Map<K,V> transferMap(Collection collection ,String propertyName,Boolean exchange){
         checkInputParam(collection,propertyName);
         Map<K,V> map = new HashMap<>(collection.size());
-        Boolean trans = null != translate?translate : true;
+        Boolean trans = null != exchange?exchange : true;
         for (Object obj : collection) {
             V value = (V) obj;
             try {
@@ -43,6 +46,42 @@ public class CollectionUtil {
                 field.setAccessible(true);
                 K key = (K) field.get(obj);
                 if (null != key && trans){
+                    map.put(key,value);
+                }
+            } catch (NoSuchFieldException e) {
+                throw new RuntimeException("class has no such property name :"+ propertyName);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException("class has no such property value :" + propertyName);
+            }
+        }
+        return map;
+    }
+
+    /**
+     *
+     * list 转 map
+     * 去除重复数据 当发生key重复时，进行覆盖
+     * @param collection 集合
+     * @param propertyName 属性名
+     * @param <K>
+     * @param <V>
+     * @jdk 1.7及以上
+     * @return
+     */
+    @LoggerAnnotation
+    public static <K,V> Map<K,V> transferMap(Collection collection ,String propertyName){
+        checkInputParam(collection,propertyName);
+        Map<K,V> map = new HashMap<>(collection.size());
+        for (Object obj : collection) {
+            V value = (V) obj;
+            try {
+                Field  field = obj.getClass().getDeclaredField(propertyName);
+                if (null == field){
+                    continue;
+                }
+                field.setAccessible(true);
+                K key = (K) field.get(obj);
+                if (null != key){
                     map.put(key,value);
                 }
             } catch (NoSuchFieldException e) {
@@ -72,7 +111,7 @@ public class CollectionUtil {
      * list获取属性 默认过滤null值
      * @param collection
      * @param propertyName
-     * @jdk 1.8
+     * @jdk 1.7及以上
      * @return
      */
     @LoggerAnnotation
@@ -95,6 +134,17 @@ public class CollectionUtil {
         }
         return list;
     }
+
+    /**
+     * 根据入参属性值进行分组
+     * @param collection 入参集合
+     * @param propertyName 分类依据key
+     * @param <K> key
+     * @param <V>value
+     * @jdk 1.7及以上
+     * @return map<K,List>
+     */
+    @LoggerAnnotation
     public static <K,V extends Map<K, V>>Map<K,List> transferMapGroup(Collection collection, String propertyName){
         checkInputParam(collection,propertyName);
         Map<K,List> ans = new HashMap<>(collection.size()>8?8:collection.size());
@@ -122,21 +172,108 @@ public class CollectionUtil {
         }
         return ans;
     }
+
+    /**
+     * 将list按照规定条数划分子list
+     * @param list 入参集合
+     * @param size 划分子集的长度
+     * @param <E>
+     * @return
+     */
+    @LoggerAnnotation
+    public static <E> List<List<E>> getSubList(List<E> list,int size){
+        if (isEmpty(list)){
+            return new ArrayList<>();
+        }
+        List<List<E>> result = new ArrayList<>();
+        for (int begin = 0; begin < list.size(); begin = begin + size) {
+            int end = (begin + size > list.size() ? list.size() : begin + size);
+            result.add(list.subList(begin, end));
+        }
+        return result;
+    }
+
+    /**
+     * 根据入参属性进行排序
+     * @param list 集合
+     * @param propertyName 排序字段
+     * @param sort 正序、倒叙
+     * @param
+     * @return
+     */
+    public static void sortByPropertyConfig(List list ,String propertyName,Boolean sort){
+        checkInputParam(list,propertyName);
+        List ans = new ArrayList<>();
+        Collections.sort(list, new Comparator<Object>() {
+            @Override
+            public int compare(Object o1, Object o2) {
+                try {
+                    Object obj1;
+                    Object obj2;
+                    if (sort){
+                        obj1 = PropertyUtils.getProperty(o1,propertyName);
+                        obj2 = PropertyUtils.getProperty(o2,propertyName);
+                    }else {
+                        obj1 = PropertyUtils.getProperty(o2,propertyName);
+                        obj2 = PropertyUtils.getProperty(o1,propertyName);
+                    }
+                    if (null == obj1){
+                        return  -1;
+                    }
+                    if (obj1 instanceof Number){
+                        return ((Comparable)obj1).compareTo(obj2);
+                    }
+                    if (obj1 instanceof Date){
+                        return (((Date) obj1).compareTo((Date)obj2));
+                    }
+                    if (obj1 instanceof String){
+                        return obj1.toString().compareTo(obj2.toString());
+                    }
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException("class has no such property value :" + propertyName);
+                } catch (NoSuchMethodException e) {
+                    throw new RuntimeException("fieldName is empty :" + propertyName);
+                } catch (InvocationTargetException e) {
+                    e.printStackTrace();
+                }
+                return 0;
+            }
+        });
+
+    }
+    /**
+     * 为空判断
+     * @param collection
+     * @return
+     */
     public static Boolean isEmpty(@Nullable Collection collection){
         return (collection == null || collection.isEmpty());
     }
-
+    /**
+     * 非空判断
+     * @param collection
+     * @return
+     */
     public static Boolean isNotEmpty(@Nullable Collection collection){
         return (collection != null && !collection.isEmpty());
     }
-
+    /**
+     * 为空判断
+     * @param map
+     * @return
+     */
     public static boolean isEmpty(@Nullable Map<?, ?> map) {
         return map == null || map.isEmpty();
     }
-
+    /**
+     * 非空判断
+     * @param map
+     * @return
+     */
     public static boolean isNotEmpty(@Nullable Map<?, ?> map) {
         return map != null && !map.isEmpty();
     }
+
 
 
 }

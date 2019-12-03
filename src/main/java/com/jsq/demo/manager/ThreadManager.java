@@ -51,7 +51,6 @@ public class ThreadManager {
             while (iterator.hasNext()) {
                 ThreadPoolParamDTO.ThreadParam threadParam = iterator.next();
                 threadPoolExecutor.execute(new InvokeRunnable(countDownLatch,threadParam, result));
-
             }
         }catch (Exception e ){
             logger.error("线程池调用失败：{}", JSON.toJSONString(e.getMessage()));

@@ -21,7 +21,6 @@ import java.util.concurrent.*;
  * 需要传入进入线程池中的具体方法参数 包括 调用类 className  调用方法 method  调用入参数据 Object...
  * @author jsq
  */
-@Component
 public class ThreadManager {
 
     private static final Logger logger = LoggerFactory.getLogger(ThreadManager.class);
@@ -32,7 +31,7 @@ public class ThreadManager {
      * @return
      */
     @LoggerAnnotation
-    public Map<String, Object> getThreadResult(ThreadPoolParamDTO threadPoolParam) {
+    public static Map<String, Object> getThreadResult(ThreadPoolParamDTO threadPoolParam) {
         Map<String, Object> result = new ConcurrentHashMap<>(threadPoolParam.getParamList().size());
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
                 null == threadPoolParam.getCorePoolSize()? 1:threadPoolParam.getCorePoolSize(),

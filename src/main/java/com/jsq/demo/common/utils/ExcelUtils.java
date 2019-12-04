@@ -11,14 +11,9 @@ import com.alibaba.excel.annotation.write.style.HeadRowHeight;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import com.jsq.demo.test.DemoData;
 
-
 import java.time.LocalDate;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+
 
 /**
  * Excel工具类 导出导入
@@ -60,27 +55,19 @@ public class ExcelUtils {
     public synchronized static void writeMultiSheet(String fileName, List list,int pageSize) {
         String writeFileName = fileName + LocalDate.now() + ".xlsx";
         // 通过读取list中的属性去填写信息头
+        Long time = System.currentTimeMillis();
+        System.out.println("--------------------------start in :"+ time);
         if (CollectionUtil.isNotEmpty(list)){
             List<List<DemoData>> data = CollectionUtil.getSubList(list,pageSize);
             ExcelWriter excelWriter = EasyExcel.write(writeFileName, DemoData.class).build();
-            ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(3,
-                    3, 180L,
-                    TimeUnit.SECONDS, new LinkedBlockingQueue<>());
-            CountDownLatch countDownLatch = new CountDownLatch(data.size() - 1);
             for (int i = 0; i < data.size(); i++) {
                 List<DemoData> subData = data.get(i);
-                AtomicInteger atomicInteger = new AtomicInteger(i);
-                threadPoolExecutor.execute(()-> writerSheets(atomicInteger.get(),fileName,subData,excelWriter,countDownLatch));
-                writerSheets(i,fileName,subData,excelWriter, countDownLatch);
-            }
-            try {
-                countDownLatch.await();
-                threadPoolExecutor.shutdown();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+                writerSheets(i,fileName,subData,excelWriter);
             }
             /// 千万别忘记finish 会帮忙关闭流
             excelWriter.finish();
+            Long end = System.currentTimeMillis();
+            System.out.println("--------------------------spend time: "+(end - time));
         }
     }
 
@@ -90,27 +77,23 @@ public class ExcelUtils {
      * @param sheetName 表格名称
      * @param data 数据
      * @param excelWriter excel对象
-     * @param countDownLatch 计数器
      */
-    private static void  writerSheets(int sheetNo, String sheetName, List data, ExcelWriter excelWriter, CountDownLatch countDownLatch){
+    private static void  writerSheets(int sheetNo, String sheetName, List data, ExcelWriter excelWriter){
         try {
-            synchronized (excelWriter){
-                if (CollectionUtil.isNotEmpty(data)){
-                    // 分页写入
-                    WriteSheet writeSheet = EasyExcel.writerSheet(sheetNo, sheetName + "-" + sheetNo).build();
-                    excelWriter.write(data, writeSheet);
-                }
+            if (CollectionUtil.isNotEmpty(data)){
+                String name =  sheetName + "-" + sheetNo;
+                // 分页写入
+                WriteSheet writeSheet =  EasyExcel.writerSheet(sheetNo, name).build();
+                excelWriter.write(data, writeSheet);
             }
         } catch (Exception e) {
             e.printStackTrace();
-        }finally {
-            countDownLatch.countDown();
         }
     }
 
     public static void main(String[] args) {
-        List<DemoData> demoDataList = new ArrayList<>(5000);
-        for (int i = 0; i < 5000; i++) {
+        List<DemoData> demoDataList = new ArrayList<>(1000000);
+        for (int i = 0; i < 1000000; i++) {
             DemoData demoData = new DemoData();
             demoData.setString("testString");
             demoData.setDate(new Date(i));
@@ -119,6 +102,6 @@ public class ExcelUtils {
             demoData.setNo(i);
             demoDataList.add(demoData);
         }
-        ExcelUtils.writeMultiSheet("test",demoDataList,1000);
+        ExcelUtils.writeMultiSheet("test",demoDataList,10000);
     }
 }

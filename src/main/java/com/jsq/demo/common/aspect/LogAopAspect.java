@@ -2,6 +2,7 @@ package com.jsq.demo.common.aspect;
 
 import com.alibaba.fastjson.JSON;
 import com.jsq.demo.common.annotation.LoggerAnnotation;
+import com.jsq.demo.common.utils.ThreadLocalUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -9,7 +10,9 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.util.Arrays;
 
@@ -42,7 +45,22 @@ public class LogAopAspect {
         return obj;
     }
 
-
+    @Around("@annotation(currentRollbackAnnotation)")
+    public Object currentTranslation(ProceedingJoinPoint joinPoint, LoggerAnnotation currentRollbackAnnotation) throws Throwable {
+        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+        String methodName = signature.getDeclaringTypeName() + "." + signature.getName();
+        logger.info("currentTranslation----获取当前事物方法名---："+ methodName +"ms, 入参参数:" +
+                JSON.toJSONString(joinPoint.getArgs()));
+        AopContext.currentProxy();
+        Object obj = null;
+        try {
+            obj = joinPoint.proceed();
+        } catch (Exception e) {
+            logger.error("事物执行失败，回滚当前事物 ，错误信息为：{}",JSON.toJSON(e));
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+        }
+        return obj;
+    }
 
     /**
      * 监控dao..*DAO包及其子包的所有public方法

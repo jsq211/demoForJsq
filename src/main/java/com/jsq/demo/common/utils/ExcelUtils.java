@@ -12,12 +12,14 @@ import com.alibaba.excel.write.metadata.WriteSheet;
 import com.jsq.demo.test.DemoData;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.*;
 
 
 /**
  * Excel工具类 导出导入
  * 基于 alibaba.easyexcel进行开发
+ * 似乎是不支持多线程写入导出
  * @author jsq
  */
 public class ExcelUtils {
@@ -92,16 +94,19 @@ public class ExcelUtils {
     }
 
     public static void main(String[] args) {
-        List<DemoData> demoDataList = new ArrayList<>(1000000);
-        for (int i = 0; i < 1000000; i++) {
-            DemoData demoData = new DemoData();
-            demoData.setString("testString");
-            demoData.setDate(new Date(i));
-            demoData.setDoubleData(Math.random());
-            demoData.setCode(String.valueOf(Math.random()));
-            demoData.setNo(i);
-            demoDataList.add(demoData);
-        }
-        ExcelUtils.writeMultiSheet("test",demoDataList,10000);
+//        List<DemoData> demoDataList = new ArrayList<>(1000000);
+//        for (int i = 0; i < 1000000; i++) {
+//            DemoData demoData = new DemoData();
+//            demoData.setString("testString");
+//            demoData.setDate(new Date(i));
+//            demoData.setDoubleData(Math.random());
+//            demoData.setCode(String.valueOf(Math.random()));
+//            demoData.setNo(i);
+//            demoDataList.add(demoData);
+//        }
+//        ExcelUtils.writeMultiSheet("test",demoDataList,10000);
+        YearMonth yearMonth = YearMonth.now();
+        LocalDate localDate = LocalDate.of(yearMonth.getYear(),yearMonth.getMonthValue(),1);
+        System.out.println( YearMonth.now().toString());
     }
 }

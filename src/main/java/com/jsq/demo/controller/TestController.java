@@ -1,9 +1,14 @@
 package com.jsq.demo.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.jsq.demo.common.TransactionalRollbackConstants;
 import com.jsq.demo.common.annotation.LoggerAnnotation;
+import com.jsq.demo.common.annotation.TransactionalRollback;
+import com.jsq.demo.dao.TestDAO;
 import com.jsq.demo.pojo.dto.ThreadPoolParamDTO;
+import com.jsq.demo.service.TestService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,7 +28,9 @@ import java.util.Map;
 @RequestMapping("/test")
 public class TestController {
     @Autowired
-    private ThreadManager threadManager;
+    private TestService testService;
+    @Autowired
+    private TestDAO testDAO;
 
     @LoggerAnnotation
     @GetMapping("/hello")
@@ -31,15 +38,29 @@ public class TestController {
         if (StringUtils.isEmpty(n)){
             throw new RuntimeException("名称不能为空！！");
         }
-        return "hello，" + name + "and " + n;
+        return "hello，" + name + " and " + n;
     }
 
-    @LoggerAnnotation
     @GetMapping("/hi")
-    public String sayHi(String name,String n){
-        return "hi，" + name + "and " + n;
+//    @TransactionalRollback(transactionDefinition = TransactionalRollbackConstants.PROPAGATION_REQUIRES_NEW)
+    public String sayHi(){
+        return testService.get();
     }
 
+    public String get() {
+        List<String> str = new ArrayList<>();
+        for (int i = 0; i < 4; i++) {
+            String name = i == 2?null:"jsq" + i;
+            String ans = sayHi(name,"jsq" + i);
+            str.add(ans);
+        }
+        return JSON.toJSONString(str);
+    }
+
+    public String sayHi(String name,String n){
+        testDAO.insert(name,n);
+        return "hi " + name + " and " + n;
+    }
     @GetMapping("/test")
     public String testForTest(){
         ThreadPoolParamDTO threadPoolParamDTO = new ThreadPoolParamDTO();
@@ -64,7 +85,7 @@ public class TestController {
         threadParamB.setRequestParam(new Object[]{"asd","sadasd"});
         threadParamLinkedList.addLast(threadParamB);
         threadPoolParamDTO.setParamList(threadParamLinkedList);
-        Map<String, Object> result = threadManager.getThreadResult(threadPoolParamDTO);
+        Map<String, Object> result = ThreadManager.getThreadResult(threadPoolParamDTO);
         String a = result.get("sayHello").toString();
         String b = result.get("sayHi").toString();
         List<String> re = new ArrayList<>();

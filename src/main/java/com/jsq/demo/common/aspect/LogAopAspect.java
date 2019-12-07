@@ -1,8 +1,10 @@
 package com.jsq.demo.common.aspect;
 
 import com.alibaba.fastjson.JSON;
+import com.jsq.demo.DemoApplication;
 import com.jsq.demo.common.annotation.LoggerAnnotation;
-import com.jsq.demo.common.utils.ThreadLocalUtils;
+import com.jsq.demo.common.annotation.TransactionalRollback;
+import com.jsq.demo.service.TestService;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -10,10 +12,12 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.aop.framework.AopContext;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+import javax.annotation.Resource;
 import java.util.Arrays;
 
 /**
@@ -25,6 +29,10 @@ import java.util.Arrays;
 public class LogAopAspect {
 
     private static final Logger logger = LoggerFactory.getLogger(LogAopAspect.class);
+
+    @Pointcut("execution(* com.jsq.demo.service.*service.*(..))")
+    public void annotationPointcut() {
+    }
 
     @Around("@annotation(loggerAnnotation)")
     public Object getLogMessage(ProceedingJoinPoint joinPoint, LoggerAnnotation loggerAnnotation) throws Throwable {
@@ -45,19 +53,24 @@ public class LogAopAspect {
         return obj;
     }
 
-    @Around("@annotation(currentRollbackAnnotation)")
-    public Object currentTranslation(ProceedingJoinPoint joinPoint, LoggerAnnotation currentRollbackAnnotation) throws Throwable {
+    @Around("annotationPointcut() && @annotation(transactionalRollback)")
+    public Object currentTranslation(ProceedingJoinPoint joinPoint, TransactionalRollback transactionalRollback) throws Throwable {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         String methodName = signature.getDeclaringTypeName() + "." + signature.getName();
         logger.info("currentTranslation----获取当前事物方法名---："+ methodName +"ms, 入参参数:" +
                 JSON.toJSONString(joinPoint.getArgs()));
-        AopContext.currentProxy();
+        //获取事物管理器 手动添加新事物
+        DataSourceTransactionManager txManager = (DataSourceTransactionManager) DemoApplication.getApplicationContext().getBean("transactionManager");
+        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+        def.setPropagationBehavior(transactionalRollback.transactionDefinition());
+        TransactionStatus txStatus = txManager.getTransaction(def);
         Object obj = null;
         try {
             obj = joinPoint.proceed();
+            txManager.commit(txStatus);
         } catch (Exception e) {
             logger.error("事物执行失败，回滚当前事物 ，错误信息为：{}",JSON.toJSON(e));
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            txManager.rollback(txStatus);
         }
         return obj;
     }

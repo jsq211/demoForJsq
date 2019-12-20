@@ -30,7 +30,7 @@ public class LogAopAspect {
 
     private static final Logger logger = LoggerFactory.getLogger(LogAopAspect.class);
 
-    @Pointcut("execution(* com.jsq.demo.service.*service.*(..))")
+    @Pointcut("execution(* com.jsq.demo.service.*.*(..))")
     public void annotationPointcut() {
     }
 

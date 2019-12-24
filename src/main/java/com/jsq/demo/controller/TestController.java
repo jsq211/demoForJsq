@@ -44,7 +44,7 @@ public class TestController {
     @GetMapping("/hi")
 //    @TransactionalRollback(transactionDefinition = TransactionalRollbackConstants.PROPAGATION_REQUIRES_NEW)
     public String sayHi(){
-        return testService.get();
+        return testService.sayHi("jsq","test");
     }
 
     public String get() {

@@ -2,7 +2,7 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/pipeline?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&&useSSL=false&amp&serverTimezone=GMT%2B8
+    url: jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&&useSSL=false&amp&serverTimezone=GMT%2B8
     username: root
     password: admin
   jackson:
@@ -12,15 +12,15 @@ spring:
     cache.clusterNodes: 127.0.0.1:6379
     cache.commandTimeout: 5000
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include:  health,info,beans # 健康监控信息
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include:  health,info,beans # 健康监控信息
 mybatis:
   config-location:
     classpath: mybatis-config.xml
-  mapper-locations: classpath*:mybatis/**.xml
+#  mapper-locations: classpath*:com.jsq.demo.dao/**.xml
 
 server:
-  port: 8047
+  port: 8088

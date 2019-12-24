@@ -3,6 +3,7 @@ package com.jsq.demo.service;
 import com.alibaba.fastjson.JSON;
 import com.jsq.demo.common.utils.SpringUtil;
 import com.jsq.demo.dao.TestDAO;
+import com.jsq.demo.pojo.po.TestPO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,7 +30,11 @@ public class TestService {
     }
 
     public String sayHi(String name,String n){
-        testDAO.insert(name,n);
+        TestPO testPO = testDAO.findOne("1");
+        testPO.setN(null);
+        testDAO.updateByIdNotNull(testPO);
+        System.out.println(JSON.toJSONString(testPO));
+//        testDAO.insert(name,n);
         return "hi " + name + " and " + n;
     }
 }

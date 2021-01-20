@@ -18,6 +18,7 @@ spring:
 #      exposure:
 #        include:  health,info,beans # 健康监控信息
 mybatis:
+  mapper-locations: classpath:com/jsq/demo/dao/*Mapper.xml
   config-location:
     classpath: mybatis-config.xml
 #  mapper-locations: classpath*:com.jsq.demo.dao/**.xml

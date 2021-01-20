@@ -1,14 +1,13 @@
 package com.jsq.demo.service;
 
-import com.alibaba.fastjson.JSON;
-import com.jsq.demo.common.utils.SpringUtil;
-import com.jsq.demo.dao.TestDAO;
-import com.jsq.demo.pojo.po.TestPO;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.google.common.collect.Lists;
+import com.jsq.demo.dao.TestMapper;
+import com.jsq.demo.pojo.TestPO;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import javax.annotation.Resource;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * 测试
@@ -16,25 +15,26 @@ import java.util.List;
  */
 @Service
 public class TestService {
-    @Autowired
-    private TestDAO testDAO;
+    @Resource
+    private TestMapper testMapper;
 
-    public String get() {
-        List<String> str = new ArrayList<>();
-        for (int i = 0; i < 4; i++) {
-            String name = i == 2?null:"jsq" + i;
-            String ans = SpringUtil.getBean(this.getClass()).sayHi(name,"jsq" + i);
-            str.add(ans);
+    public Integer testBatchInsert() {
+        List<TestPO> testPOList = Lists.newArrayList();
+        for (int i = 0; i <3; i++) {
+            testPOList.add(createPO(i));
         }
-        return JSON.toJSONString(str);
+        return testMapper.batchInsert(testPOList);
     }
 
-    public String sayHi(String name,String n){
-        TestPO testPO = testDAO.findOne("1");
-        testPO.setN(null);
-        testDAO.updateByIdNotNull(testPO);
-        System.out.println(JSON.toJSONString(testPO));
-//        testDAO.insert(name,n);
-        return "hi " + name + " and " + n;
+    private TestPO createPO(int i) {
+        TestPO testPO = new TestPO();
+        testPO.setN(String.valueOf(i));
+        testPO.setName(UUID.randomUUID().toString());
+        return testPO;
+    }
+
+    public Integer testInsert() {
+        return testMapper.insert(createPO(1));
+
     }
 }

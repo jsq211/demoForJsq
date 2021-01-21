@@ -1,7 +1,6 @@
 package com.jsq.demo.common.config;
 
 import com.jsq.demo.common.utils.mybasedao.inject.MySqlInjector;
-import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -12,7 +11,6 @@ import org.springframework.context.annotation.Configuration;
  * @author jsq
  */
 @Configuration
-@MapperScan("com.jsq.demo.dao")
 public class MybatisPlusConfig {
     @Bean
     public MySqlInjector sqlInjector() {

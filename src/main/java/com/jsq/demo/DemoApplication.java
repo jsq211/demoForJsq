@@ -6,7 +6,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 
-
+@MapperScan("com.jsq.demo.dao")
 @SpringBootApplication
 public class DemoApplication {
     private static ApplicationContext applicationContext;

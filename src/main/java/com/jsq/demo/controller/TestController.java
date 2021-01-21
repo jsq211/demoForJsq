@@ -26,4 +26,6 @@ public class TestController {
     public Integer insert(){
         return testService.testInsert();
     }
+    @GetMapping("/batchUpdate")
+    public Integer batchUpdate(){return testService.testBatchUpdate(); }
 }

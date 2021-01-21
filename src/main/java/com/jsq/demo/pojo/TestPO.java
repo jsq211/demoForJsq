@@ -12,4 +12,5 @@ public class TestPO {
     private Long id;
     private String name;
     private String n;
+    private Boolean enabled;
 }

@@ -3,9 +3,12 @@ package com.jsq.demo.service;
 import com.google.common.collect.Lists;
 import com.jsq.demo.dao.TestMapper;
 import com.jsq.demo.pojo.TestPO;
+import org.apache.poi.ss.formula.functions.T;
+import org.aspectj.weaver.ast.Test;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,6 +38,24 @@ public class TestService {
 
     public Integer testInsert() {
         return testMapper.insert(createPO(1));
+
+    }
+
+    public Integer testBatchUpdate() {
+
+        List<TestPO> testPOList = createPOUpdate(Lists.newArrayList(1L,2L,3L));
+        return testMapper.batchUpdate(testPOList);
+    }
+
+    private List<TestPO> createPOUpdate(List<Long> list) {
+        List<TestPO> testPOList = Lists.newArrayList();
+        list.forEach(e->{
+            TestPO po = new TestPO();
+            po.setEnabled(false);
+            po.setId(e);
+            testPOList.add(po);
+        });
+        return testPOList;
 
     }
 }

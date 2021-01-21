@@ -15,8 +15,11 @@ public class BatchUpdate extends AbstractMethod {
         String sql = "<script>\n<foreach collection=\"list\" item=\"item\" separator=\";\">\nupdate %s %s where %s=#{%s} %s\n</foreach>\n</script>";
         String additional = "" + tableInfo.getLogicDeleteSql(true, true);
         String setSql = sqlSet(tableInfo.isLogicDelete(), false, tableInfo, false, "item", "item.");
-        String sqlResult = String.format(sql, tableInfo.getTableName(), setSql, tableInfo.getKeyColumn(), "item." + tableInfo.getKeyProperty(), additional);
-        SqlSource sqlSource = languageDriver.createSqlSource(configuration, sqlResult, modelClass);
+        String sqlResult = String.format(sql, tableInfo.getTableName(), setSql, tableInfo.getKeyColumn(), "item." + tableInfo.getKeyProperty(),additional);
+        StringBuilder sqlFormat = new StringBuilder(sqlResult);
+        int idx = sqlResult.lastIndexOf("</if>");
+        sqlFormat.replace(idx-1,idx,"");
+        SqlSource sqlSource = languageDriver.createSqlSource(configuration, sqlFormat.toString(), modelClass);
         // 第三个参数必须和RootMapper的自定义方法名一致
         return this.addUpdateMappedStatement(mapperClass, modelClass, "batchUpdate", sqlSource);
     }

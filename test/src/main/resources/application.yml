@@ -1,0 +1,23 @@
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&&useSSL=false&amp&serverTimezone=GMT%2B8&allowMultiQueries=true
+    username: root
+    password: admin
+  jackson:
+    serialization:
+      indent_output: true
+  redis:
+    cache:
+      clusterNodes: 127.0.0.1:6379
+      commandTimeout: 5000
+
+
+mybatis:
+  config-location:
+    classpath: mybatis-config.xml
+#  mapper-locations: classpath*:com.jsq.demo.dao/**.xml
+
+server:
+  port: 8088

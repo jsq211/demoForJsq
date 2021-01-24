@@ -1,4 +1,4 @@
-package com.jsq.component.config;
+package com.jsq.component.util;
 
 
 import org.springframework.beans.BeansException;

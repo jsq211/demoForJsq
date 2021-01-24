@@ -1,17 +1,26 @@
 package com.jsq.component.interceptor;
 
+import com.jsq.component.util.MybatisSyncComponent;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.SqlCommandType;
 import org.apache.ibatis.plugin.*;
 import org.apache.ibatis.session.Configuration;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Properties;
 
 
+/**
+ * mysql同步
+ * @author jsq
+ */
 @Intercepts({@Signature(type = Executor.class, method = "update", args = {MappedStatement.class, Object.class})})
-public class MybatisInterceptor implements Interceptor {
+public class MybatisSyncInterceptor implements Interceptor {
+
+    @Autowired
+    private MybatisSyncComponent mybatisSyncComponent;
 
     @Override
     public Object intercept(Invocation invocation) throws Throwable {
@@ -28,7 +37,8 @@ public class MybatisInterceptor implements Interceptor {
             return invocation.proceed();
         }
         if (SqlCommandType.INSERT == sqlCommandType) {
-
+            Object result = invocation.proceed();
+            mybatisSyncComponent.insertList(parameter,mappedStatement.getParameterMap());
         }
         if (SqlCommandType.UPDATE == sqlCommandType) {
             // 添加修改记录

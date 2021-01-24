@@ -9,7 +9,7 @@ import java.util.List;
  * 批量新增更新
  * @author jsq
  */
-public interface MyExtendDAO<T> extends BaseMapper<T> {
+public interface MyBaseDAO<T> extends BaseMapper<T> {
     /**
      * 自定义批量插入
      */

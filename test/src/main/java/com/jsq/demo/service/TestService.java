@@ -1,6 +1,8 @@
 package com.jsq.demo.service;
 
 import com.google.common.collect.Lists;
+import com.jsq.component.config.MybatisPlusSyncProps;
+import com.jsq.component.util.RedisUtil;
 import com.jsq.demo.dao.TestMapper;
 import com.jsq.demo.pojo.TestPO;
 import org.springframework.stereotype.Service;
@@ -17,7 +19,8 @@ import java.util.UUID;
 public class TestService {
     @Resource
     private TestMapper testMapper;
-
+    @Resource
+    private MybatisPlusSyncProps mybatisPlusSyncProps;
     public Integer testBatchInsert() {
         List<TestPO> testPOList = Lists.newArrayList();
         for (int i = 0; i <3; i++) {

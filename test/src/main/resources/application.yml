@@ -9,15 +9,13 @@ spring:
     serialization:
       indent_output: true
   redis:
-    cache:
-      clusterNodes: 127.0.0.1:6379
-      commandTimeout: 5000
+    host: 116.62.204.205 # Redis服务器地址
+    database: 1 # Redis数据库索引（默认为0）
+    port: 6379 # Redis服务器连接端口
+    password: redis@704762133 # Redis服务器连接密码（默认为空）
+    timeout: 300ms # 连接超时时间（毫秒）
 
-
-mybatis:
-  config-location:
-    classpath: mybatis-config.xml
-#  mapper-locations: classpath*:com.jsq.demo.dao/**.xml
-
-server:
-  port: 8088
+jsq:
+  sync:
+    enabled: true
+    prefix: ums_

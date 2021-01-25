@@ -2,13 +2,13 @@ package com.jsq.component.interceptor;
 
 import com.jsq.component.util.MybatisSyncComponent;
 import org.apache.ibatis.executor.Executor;
-import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.SqlCommandType;
 import org.apache.ibatis.plugin.*;
 import org.apache.ibatis.session.Configuration;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.sql.DataSource;
 import java.util.Properties;
 
 
@@ -28,20 +28,23 @@ public class MybatisSyncInterceptor implements Interceptor {
 
         SqlCommandType sqlCommandType = mappedStatement.getSqlCommandType();
         Object parameter = invocation.getArgs()[1];
-        // BoundSql就是封装myBatis最终产生的sql类
-        BoundSql boundSql = mappedStatement.getBoundSql(parameter);
+
         // 获取节点的配置
         Configuration configuration = mappedStatement.getConfiguration();
-
+        DataSource db = configuration.getEnvironment().getDataSource();
+        String databaseName = db.getConnection().getCatalog();
         if (parameter == null) {
             return invocation.proceed();
         }
         if (SqlCommandType.INSERT == sqlCommandType) {
             Object result = invocation.proceed();
-            mybatisSyncComponent.insertList(parameter,mappedStatement.getParameterMap());
+            mybatisSyncComponent.insertRedis(databaseName,parameter,mappedStatement.getParameterMap());
+            return result;
         }
         if (SqlCommandType.UPDATE == sqlCommandType) {
             // 添加修改记录
+            Object result = invocation.proceed();
+            mybatisSyncComponent.insertRedis(databaseName,parameter,mappedStatement.getParameterMap());
 
         }
         if (SqlCommandType.DELETE == sqlCommandType) {

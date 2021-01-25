@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 /**
  * mybatis配置
  * 批量插入
- * 批量删除
+ * 批量更新
  * @author jsq
  */
 @Configuration

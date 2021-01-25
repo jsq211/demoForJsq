@@ -2,7 +2,6 @@ package com.jsq.demo.service;
 
 import com.google.common.collect.Lists;
 import com.jsq.component.config.MybatisPlusSyncProps;
-import com.jsq.component.util.RedisUtil;
 import com.jsq.demo.dao.TestMapper;
 import com.jsq.demo.pojo.TestPO;
 import org.springframework.stereotype.Service;
@@ -19,8 +18,7 @@ import java.util.UUID;
 public class TestService {
     @Resource
     private TestMapper testMapper;
-    @Resource
-    private MybatisPlusSyncProps mybatisPlusSyncProps;
+
     public Integer testBatchInsert() {
         List<TestPO> testPOList = Lists.newArrayList();
         for (int i = 0; i <3; i++) {
@@ -44,7 +42,7 @@ public class TestService {
     public Integer testBatchUpdate() {
 
         List<TestPO> testPOList = createPOUpdate(Lists.newArrayList(1L,2L,3L));
-        return testMapper.batchUpdate(testPOList);
+        return testMapper.batchUpdateIgnoreNull(testPOList);
     }
 
     private List<TestPO> createPOUpdate(List<Long> list) {
@@ -57,5 +55,10 @@ public class TestService {
         });
         return testPOList;
 
+    }
+
+    public Integer testBatchUpdateAll() {
+        List<TestPO> testPOList = createPOUpdate(Lists.newArrayList(1L,2L,3L));
+        return testMapper.batchUpdate(testPOList);
     }
 }

@@ -21,10 +21,15 @@ public class TestController {
     public Integer batchInsert(){
         return testService.testBatchInsert();
     }
+    @GetMapping("/batchUpdateAll")
+    public Integer batchInsertAll(){
+        return testService.testBatchUpdateAll();
+    }
     @GetMapping("/insert")
     public Integer insert(){
         return testService.testInsert();
     }
     @GetMapping("/batchUpdate")
     public Integer batchUpdate(){return testService.testBatchUpdate(); }
+
 }

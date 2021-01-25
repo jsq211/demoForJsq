@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.injector.AbstractSqlInjector;
 import com.baomidou.mybatisplus.core.injector.methods.*;
 import com.jsq.component.mybasedao.method.BatchInsert;
 import com.jsq.component.mybasedao.method.BatchUpdate;
+import com.jsq.component.mybasedao.method.BatchUpdateIgnoreNull;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -37,6 +38,7 @@ public class MySqlInjector extends AbstractSqlInjector {
                 new SelectList(),
                 new SelectPage(),
                 new BatchInsert(),
+                new BatchUpdateIgnoreNull(),
                 new BatchUpdate()
         ).collect(toList());
     }

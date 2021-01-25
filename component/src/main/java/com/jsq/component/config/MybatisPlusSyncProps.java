@@ -25,6 +25,7 @@ public class MybatisPlusSyncProps {
 
     private static final String ENABLED = "enabled";
     private static final String TABLE_LIST = "tableList";
+    private static final String PREFIX = "prefix";
     public static MybatisPlusSyncProps getInstance(){
         if (null == instance){
             synchronized (MybatisPlusSyncProps.class){
@@ -48,14 +49,23 @@ public class MybatisPlusSyncProps {
     }
 
     public Set<String> getTableList() {
-        String tableNameArray = sync.get(TABLE_LIST);
-        if (StringUtils.isEmpty(tableNameArray)){
-            return Sets.newHashSet();
-        }
         try {
+            String tableNameArray = sync.get(TABLE_LIST);
+            if (StringUtils.isEmpty(tableNameArray)){
+                return Sets.newHashSet();
+            }
             return Sets.newHashSet(Arrays.asList(tableNameArray.split(",")));
         } catch (Exception e) {
             return Sets.newHashSet();
+        }
+    }
+
+    public String getPrefix() {
+
+        try {
+            return sync.get(PREFIX);
+        } catch (Exception e) {
+            return "";
         }
     }
 }

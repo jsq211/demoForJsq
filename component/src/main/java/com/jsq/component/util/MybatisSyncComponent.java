@@ -2,6 +2,7 @@ package com.jsq.component.util;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.jsq.component.config.MybatisPlusSyncProps;
+import com.mysql.cj.util.StringUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.ibatis.mapping.ParameterMap;
 import org.slf4j.Logger;
@@ -24,9 +25,9 @@ public class MybatisSyncComponent {
     @Autowired
     private RedisUtil redisUtil;
 
-    private static Boolean NOT_ALLOWED = null;
-    private static Set<String> TABLE_LIST = null;
-    private static String PREFIX = null;
+    private static volatile Boolean NOT_ALLOWED = null;
+    private static volatile Set<String> TABLE_SET = null;
+    private static volatile String PREFIX = null;
     private static final String KEY_FORMAT= "%s:%s:%s";
 
     private static final Logger logger = LoggerFactory.getLogger(MybatisSyncComponent.class);
@@ -42,25 +43,35 @@ public class MybatisSyncComponent {
         return NOT_ALLOWED;
     }
 
+
     private static Set<String> tableList(){
-        if (null == TABLE_LIST){
+        if (null == TABLE_SET){
             synchronized (MybatisSyncComponent.class){
-                if (null == TABLE_LIST){
-                    TABLE_LIST = MybatisPlusSyncProps.getInstance().getTableList();
+                if (null == TABLE_SET){
+                    TABLE_SET = MybatisPlusSyncProps.getInstance().getTableList();
                 }
             }
         }
-        return TABLE_LIST;
+        return TABLE_SET;
     }
 
+    private static String getPrefix(){
+        if (null == PREFIX){
+            synchronized (MybatisSyncComponent.class){
+                if (null == PREFIX){
+                    PREFIX = MybatisPlusSyncProps.getInstance().getPrefix();
+                }
+            }
+        }
+        return PREFIX;
+    }
     public void insertRedis(String database, Object parameter, ParameterMap parameterMap) {
         if (notAllowed()){
             return;
         }
-
         String table = getTableName(parameterMap);
 
-        if (!CollectionUtils.isEmpty(tableList())&&(TABLE_LIST.contains(table))){
+        if (!CollectionUtils.isEmpty(tableList())&&(TABLE_SET.contains(table))){
             if (parameter instanceof Map){
                 setRedisList(database,parameter,table);
             }
@@ -68,7 +79,7 @@ public class MybatisSyncComponent {
             return;
         }
 
-        if (table.startsWith(PREFIX)){
+        if (StringUtils.isNullOrEmpty(getPrefix()) && table.startsWith(getPrefix())){
             if (parameter instanceof Map){
                 setRedisList(database,parameter,table);
             }
@@ -111,7 +122,7 @@ public class MybatisSyncComponent {
         Class<?> clazz = parameterMap.getType();
         TableName tableName = clazz.getAnnotation(TableName.class);
         String table = tableName.value();
-        if (!CollectionUtils.isEmpty(tableList())&&(TABLE_LIST.contains(table))){
+        if (!CollectionUtils.isEmpty(tableList())&&(TABLE_SET.contains(table))){
             if (parameter instanceof Map){
                 updateRedisList(databaseName,parameter,table,clazz);
             }
@@ -119,7 +130,7 @@ public class MybatisSyncComponent {
             return;
         }
 
-        if (table.startsWith(PREFIX)){
+        if (StringUtils.isNullOrEmpty(getPrefix()) && table.startsWith(getPrefix())){
             if (parameter instanceof Map){
                 updateRedisList(databaseName,parameter,table,clazz);
             }
@@ -128,8 +139,16 @@ public class MybatisSyncComponent {
 
     }
 
-    private void updateRedisSingle(String databaseName, Object parameter, String table,Class<?> clazz) {
-
+    private void updateRedisSingle(String databaseName, Object parameter, String tableName,Class<?> clazz) {
+        try {
+            String id = String.valueOf(PropertyUtils.getProperty(parameter,"id"));
+            String redisKey = String.format(KEY_FORMAT,databaseName,tableName,id);
+            Object object = redisUtil.getObj(redisKey);
+            BeanUtil.copyProperties(clazz.newInstance(),object);
+            redisUtil.set(redisKey,object);
+        } catch (Exception e) {
+            logger.info("sync failed message:{}",e.getMessage());
+        }
     }
 
     private void updateRedisList(String databaseName, Object parameter, String table,Class<?> clazz) {

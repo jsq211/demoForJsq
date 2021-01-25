@@ -57,9 +57,8 @@ public class MybatisSyncComponent {
         if (notAllowed()){
             return;
         }
-        Class<?> clazz = parameterMap.getType();
-        TableName tableName = clazz.getAnnotation(TableName.class);
-        String table = tableName.value();
+
+        String table = getTableName(parameterMap);
 
         if (!CollectionUtils.isEmpty(tableList())&&(TABLE_LIST.contains(table))){
             if (parameter instanceof Map){
@@ -75,6 +74,12 @@ public class MybatisSyncComponent {
             }
             setRedisSingle(database,parameter,table);
         }
+    }
+
+    private String getTableName(ParameterMap parameterMap) {
+        Class<?> clazz = parameterMap.getType();
+        TableName tableName = clazz.getAnnotation(TableName.class);
+        return tableName.value();
     }
 
     private void setRedisSingle(String database, Object parameter, String tableName) {
@@ -97,5 +102,37 @@ public class MybatisSyncComponent {
         } catch (Exception e) {
             logger.info("sync failed message:{}",e.getMessage());
         }
+    }
+
+    public void updateRedis(String databaseName, Object parameter, ParameterMap parameterMap) {
+        if (notAllowed()){
+            return;
+        }
+        Class<?> clazz = parameterMap.getType();
+        TableName tableName = clazz.getAnnotation(TableName.class);
+        String table = tableName.value();
+        if (!CollectionUtils.isEmpty(tableList())&&(TABLE_LIST.contains(table))){
+            if (parameter instanceof Map){
+                updateRedisList(databaseName,parameter,table,clazz);
+            }
+            updateRedisSingle(databaseName,parameter,table,clazz);
+            return;
+        }
+
+        if (table.startsWith(PREFIX)){
+            if (parameter instanceof Map){
+                updateRedisList(databaseName,parameter,table,clazz);
+            }
+            updateRedisSingle(databaseName,parameter,table,clazz);
+        }
+
+    }
+
+    private void updateRedisSingle(String databaseName, Object parameter, String table,Class<?> clazz) {
+
+    }
+
+    private void updateRedisList(String databaseName, Object parameter, String table,Class<?> clazz) {
+
     }
 }

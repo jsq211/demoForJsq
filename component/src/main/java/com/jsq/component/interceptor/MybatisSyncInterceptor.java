@@ -43,7 +43,7 @@ public class MybatisSyncInterceptor implements Interceptor {
         if (SqlCommandType.UPDATE == sqlCommandType) {
             // 添加修改记录
             Object result = invocation.proceed();
-            mybatisSyncComponent.insertRedis(databaseConfig.getDatabaseName(),parameter,mappedStatement.getParameterMap());
+            mybatisSyncComponent.updateRedis(databaseConfig.getDatabaseName(),parameter,mappedStatement.getParameterMap());
             return result;
         }
         if (SqlCommandType.DELETE == sqlCommandType) {

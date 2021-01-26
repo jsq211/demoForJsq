@@ -124,7 +124,8 @@ public class MybatisSyncComponent {
         String table = tableName.value();
         if (!CollectionUtils.isEmpty(tableList())&&(TABLE_SET.contains(table))){
             if (parameter instanceof Map){
-                updateRedisList(databaseName,parameter,table,clazz);
+                updateRedisList(databaseName,parameter,table);
+                return;
             }
             updateRedisSingle(databaseName,parameter,table,clazz);
             return;
@@ -132,7 +133,8 @@ public class MybatisSyncComponent {
 
         if (StringUtils.isNullOrEmpty(getPrefix()) && table.startsWith(getPrefix())){
             if (parameter instanceof Map){
-                updateRedisList(databaseName,parameter,table,clazz);
+                updateRedisList(databaseName,parameter,table);
+                return;
             }
             updateRedisSingle(databaseName,parameter,table,clazz);
         }
@@ -144,14 +146,34 @@ public class MybatisSyncComponent {
             String id = String.valueOf(PropertyUtils.getProperty(parameter,"id"));
             String redisKey = String.format(KEY_FORMAT,databaseName,tableName,id);
             Object object = redisUtil.getObj(redisKey);
-            BeanUtil.copyProperties(clazz.newInstance(),object);
+            if (null ==object){
+
+                return;
+            }
+            BeanUtil.copyPropertiesIgnoreNull(clazz.newInstance(),object);
             redisUtil.set(redisKey,object);
         } catch (Exception e) {
             logger.info("sync failed message:{}",e.getMessage());
         }
     }
 
-    private void updateRedisList(String databaseName, Object parameter, String table,Class<?> clazz) {
+    private void updateRedisList(String databaseName, Object parameter, String tableName) {
+        try {
+            List<Object> entityList = ((Map<?, List<Object>>) parameter).get("list");
+            for (Object obj:entityList ) {
+                String id = String.valueOf(PropertyUtils.getProperty(obj,"id"));
+                String redisKey = String.format(KEY_FORMAT,databaseName,tableName,id);
+                Object object = redisUtil.getObj(redisKey);
+                if (null == object){
 
+                    continue;
+                }
+                BeanUtil.copyPropertiesIgnoreNull(obj,object);
+                redisUtil.set(redisKey,object);
+            }
+
+        } catch (Exception e) {
+            logger.info("sync failed message:{}",e.getMessage());
+        }
     }
 }

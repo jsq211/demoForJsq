@@ -32,7 +32,6 @@ public class BatchUpdate extends AbstractMethod {
         StringBuilder sqlFormat = new StringBuilder(sqlResult);
         int idx = sqlResult.lastIndexOf("\n</set>");
         sqlFormat.replace(idx-1,idx,"");
-
         SqlSource sqlSource = languageDriver.createSqlSource(configuration, sqlFormat.toString(), modelClass);
         return addUpdateMappedStatement(mapperClass, modelClass, getMethod(sqlMethod), sqlSource);
     }

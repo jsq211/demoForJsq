@@ -1,8 +1,7 @@
 package com.jsq.demo.service;
 
 import com.google.common.collect.Lists;
-import com.jsq.component.config.MybatisPlusSyncProps;
-import com.jsq.component.util.RedisCacheSyncManager;
+import com.jsq.component.manager.RedisCacheSyncManager;
 import com.jsq.demo.dao.TestMapper;
 import com.jsq.demo.pojo.TestPO;
 import org.springframework.beans.factory.annotation.Autowired;

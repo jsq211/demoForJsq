@@ -73,8 +73,7 @@ public class RedisUtil {
     }
 
     public List<Object> multiGet(Collection<String> keys) {
-        Collection<String> finalKeys = new ArrayList<>();
-        return this.strVal.multiGet(finalKeys);
+        return this.strVal.multiGet(keys);
     }
 
     public void setList(String key, int index, Object val) {
@@ -92,6 +91,7 @@ public class RedisUtil {
     public Long addSet(String key, Object... vals) {
         return this.strSet.add(key, vals);
     }
+
     public Object popSet(String key) {
         return this.strSet.pop(key);
     }

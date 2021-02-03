@@ -2,6 +2,7 @@ package com.jsq.component.config;
 
 import com.jsq.component.event.listener.impl.RedisUpdateSyncListener;
 import com.jsq.component.interceptor.MybatisSyncInterceptor;
+import com.jsq.component.util.RedisCacheSyncManager;
 import com.jsq.component.util.RedisUtil;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
@@ -60,5 +61,10 @@ public class MybatisPlusRedisConfig {
         SimpleApplicationEventMulticaster eventMulticaster = new SimpleApplicationEventMulticaster();
         eventMulticaster.setTaskExecutor(this.redisAsyncTaskExecutor());
         return eventMulticaster;
+    }
+
+    @Bean
+    public RedisCacheSyncManager redisSyncManager(){
+        return new RedisCacheSyncManager();
     }
 }

@@ -2,8 +2,10 @@ package com.jsq.demo.service;
 
 import com.google.common.collect.Lists;
 import com.jsq.component.config.MybatisPlusSyncProps;
+import com.jsq.component.util.RedisCacheSyncManager;
 import com.jsq.demo.dao.TestMapper;
 import com.jsq.demo.pojo.TestPO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -18,6 +20,8 @@ import java.util.UUID;
 public class TestService {
     @Resource
     private TestMapper testMapper;
+    @Autowired
+    private RedisCacheSyncManager redisCacheSyncManager;
 
     public Integer testBatchInsert() {
         List<TestPO> testPOList = Lists.newArrayList();
@@ -60,5 +64,11 @@ public class TestService {
     public Integer testBatchUpdateAll() {
         List<TestPO> testPOList = createPOUpdate(Lists.newArrayList(1L,2L,3L));
         return testMapper.batchUpdate(testPOList);
+    }
+
+    public List<TestPO> cacheTest() {
+        List<TestPO> testPOList = createPOUpdate(Lists.newArrayList(1L,2L,3L));
+        redisCacheSyncManager.init(testPOList);
+        return testPOList;
     }
 }

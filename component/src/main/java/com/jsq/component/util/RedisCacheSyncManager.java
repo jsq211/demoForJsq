@@ -12,7 +12,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 /**
@@ -78,7 +77,7 @@ public class RedisCacheSyncManager {
                 }
             }
         }
-        getParentField(object, fieldMap,redisKeys);
+        getParentField(object, fieldMap,redisCacheInputMap,redisKeys);
         return redisKeys;
     }
 
@@ -96,18 +95,22 @@ public class RedisCacheSyncManager {
         return null;
     }
 
-    private void getParentField(Object object, Map<String, String> fieldMap, List<String> redisKeys){
+    private void getParentField(Object object, Map<String, String> fieldMap, Map<String, RedisCacheInput> redisCacheInputMap, List<String> redisKeys){
         Class<?> clazz = object.getClass();
         Class<?> superClazz = clazz.getSuperclass();
         Field[] superFields = superClazz.getDeclaredFields();
         if (superFields.length>0) {
             for(Field field : superFields){
                 if (field.isAnnotationPresent(RedisCacheInput.class)) {
-                    String redisCacheInput = getRedisKey(superClazz,field,redisKeys);
+                    String redisCacheInput = getRedisKey(object,field,redisKeys);
+                    if (StringUtils.isEmpty(redisCacheInput)){
+                        continue;
+                    }
                     fieldMap.put(redisCacheInput,field.getName());
+                    redisCacheInputMap.put(redisCacheInput,field.getAnnotation(RedisCacheInput.class));
                 }
             }
-            getParentField(superClazz, fieldMap, redisKeys);
+            getParentField(superClazz, fieldMap, redisCacheInputMap, redisKeys);
         }
     }
 

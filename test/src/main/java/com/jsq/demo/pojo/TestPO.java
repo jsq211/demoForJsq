@@ -1,18 +1,20 @@
 package com.jsq.demo.pojo;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.jsq.component.annotation.RedisCacheInput;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 @TableName("test")
-public class TestPO {
-    @TableId(type = IdType.AUTO)
-    private Long id;
-    @RedisCacheInput(database = "test",table = "test",inputKey = "id",outPutKey = "name")
-    private String name;
+public class TestPO extends TestParentPO {
+
     private String n;
     private Boolean enabled;
+
+    @Override
+    public String toString() {
+        return super.toString();
+    }
 }

@@ -1,8 +1,10 @@
-package com.jsq.component.util;
+package com.jsq.component.config;
 
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.jsq.component.config.MybatisPlusSyncProps;
 import com.jsq.component.event.RedisUpdateEvent;
+import com.jsq.component.util.BeanUtil;
+import com.jsq.component.util.RedisUtil;
+import com.jsq.component.util.SpringUtil;
 import com.mysql.cj.util.StringUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.ibatis.mapping.ParameterMap;
@@ -12,18 +14,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncConfigurer;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Executor;
 
 /**
  * 同步redis
  * @author jsq
  */
-@Async
-public class MybatisSyncComponent implements ApplicationEventPublisherAware {
+@Async("redisAsyncTaskExecutor")
+public class MybatisSyncComponent implements ApplicationEventPublisherAware, AsyncConfigurer {
 
     private static volatile Boolean NOT_ALLOWED = null;
     private static volatile Set<String> TABLE_SET = null;
@@ -183,5 +188,10 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware {
     @Override
     public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
         this.applicationEventPublisher = applicationEventPublisher;
+    }
+
+    @Override
+    public Executor getAsyncExecutor() {
+        return (ThreadPoolTaskExecutor)SpringUtil.getBean("redisAsyncTaskExecutor");
     }
 }

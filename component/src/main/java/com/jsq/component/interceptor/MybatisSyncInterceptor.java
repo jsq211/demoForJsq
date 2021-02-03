@@ -1,16 +1,13 @@
 package com.jsq.component.interceptor;
 
 import com.jsq.component.config.DatabaseConfig;
-import com.jsq.component.util.MybatisSyncComponent;
+import com.jsq.component.config.MybatisSyncComponent;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.SqlCommandType;
 import org.apache.ibatis.plugin.*;
-import org.apache.ibatis.session.Configuration;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
-import javax.sql.DataSource;
 import java.util.Properties;
 
 

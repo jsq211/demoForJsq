@@ -14,7 +14,7 @@ import java.util.Set;
 public class BeanUtil extends BeanUtils {
 
     public static void copyPropertiesIgnoreNull(Object source, Object target) {
-        BeanUtils.copyProperties(source, target, getNullPropertyNames(target));
+        BeanUtils.copyProperties(source, target, getNullPropertyNames(source));
     }
 
     public static String[] getNullPropertyNames (Object source) {

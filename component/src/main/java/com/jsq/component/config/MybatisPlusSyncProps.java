@@ -1,6 +1,5 @@
 package com.jsq.component.config;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.jsq.component.util.SpringUtil;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -8,7 +7,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 

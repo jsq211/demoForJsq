@@ -2,12 +2,15 @@ package com.jsq.component.util;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.jsq.component.config.MybatisPlusSyncProps;
+import com.jsq.component.event.RedisUpdateEvent;
 import com.mysql.cj.util.StringUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.ibatis.mapping.ParameterMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.util.CollectionUtils;
 
@@ -20,10 +23,7 @@ import java.util.Set;
  * @author jsq
  */
 @Async
-public class MybatisSyncComponent {
-
-    @Autowired
-    private RedisUtil redisUtil;
+public class MybatisSyncComponent implements ApplicationEventPublisherAware {
 
     private static volatile Boolean NOT_ALLOWED = null;
     private static volatile Set<String> TABLE_SET = null;
@@ -31,6 +31,10 @@ public class MybatisSyncComponent {
     private static final String KEY_FORMAT= "%s:%s:%s";
 
     private static final Logger logger = LoggerFactory.getLogger(MybatisSyncComponent.class);
+
+    @Autowired
+    private RedisUtil redisUtil;
+    private ApplicationEventPublisher applicationEventPublisher;
 
     private static boolean notAllowed(){
         if (null == NOT_ALLOWED){
@@ -109,7 +113,6 @@ public class MybatisSyncComponent {
                 String id = String.valueOf(PropertyUtils.getProperty(object,"id"));
                 redisUtil.set(String.format(KEY_FORMAT,database,tableName,id),object);
             }
-
         } catch (Exception e) {
             logger.info("sync failed message:{}",e.getMessage());
         }
@@ -147,7 +150,7 @@ public class MybatisSyncComponent {
             String redisKey = String.format(KEY_FORMAT,databaseName,tableName,id);
             Object object = redisUtil.getObj(redisKey);
             if (null ==object){
-
+                applicationEventPublisher.publishEvent(new RedisUpdateEvent(redisKey,databaseName,tableName,Long.valueOf(id)));
                 return;
             }
             BeanUtil.copyPropertiesIgnoreNull(clazz.newInstance(),object);
@@ -165,7 +168,7 @@ public class MybatisSyncComponent {
                 String redisKey = String.format(KEY_FORMAT,databaseName,tableName,id);
                 Object object = redisUtil.getObj(redisKey);
                 if (null == object){
-
+                    applicationEventPublisher.publishEvent(new RedisUpdateEvent(redisKey,databaseName,tableName,Long.valueOf(id)));
                     continue;
                 }
                 BeanUtil.copyPropertiesIgnoreNull(obj,object);
@@ -175,5 +178,10 @@ public class MybatisSyncComponent {
         } catch (Exception e) {
             logger.info("sync failed message:{}",e.getMessage());
         }
+    }
+
+    @Override
+    public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 }

@@ -2,6 +2,7 @@ package com.jsq.component.config;
 
 import com.jsq.component.event.listener.impl.RedisUpdateSyncListener;
 import com.jsq.component.interceptor.MybatisSyncInterceptor;
+import com.jsq.component.manager.RedisCacheManualManager;
 import com.jsq.component.manager.RedisCacheSyncManager;
 import com.jsq.component.util.RedisUtil;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -10,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
@@ -64,7 +66,14 @@ public class MybatisPlusRedisConfig {
     }
 
     @Bean
+    @ConditionalOnBean(MybatisSyncComponent.class)
     public RedisCacheSyncManager redisSyncManager(){
         return new RedisCacheSyncManager();
     }
+    @Bean
+    @ConditionalOnBean(RedisCacheSyncManager.class)
+    public RedisCacheManualManager redisCacheManualManager(JdbcTemplate jdbcTemplate,DatabaseConfig databaseConfig){
+        return new RedisCacheManualManager(jdbcTemplate,databaseConfig);
+    }
+
 }

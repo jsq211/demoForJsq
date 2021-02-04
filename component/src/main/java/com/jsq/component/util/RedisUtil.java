@@ -15,14 +15,14 @@ import java.util.concurrent.TimeUnit;
  */
 public class RedisUtil {
 
-    private final RedisTemplate<String, Object> objTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
     private final ValueOperations<String, Object> strVal;
     private final ListOperations<String, Object> strList;
     private final SetOperations<String, Object> strSet;
 
     @SuppressWarnings("unchecked")
     public RedisUtil(RedisTemplate<String, Object> redisTemplate) {
-        this.objTemplate = redisTemplate;
+        this.redisTemplate = redisTemplate;
         this.strVal = redisTemplate.opsForValue();
         this.strList = redisTemplate.opsForList();
         this.strSet = redisTemplate.opsForSet();
@@ -96,4 +96,7 @@ public class RedisUtil {
         return this.strSet.pop(key);
     }
 
+    public RedisTemplate<String,Object> getRedisTemplate(){
+        return redisTemplate;
+    }
 }

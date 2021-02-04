@@ -36,4 +36,7 @@ public class TestController {
     public Integer batchUpdate(){return testService.testBatchUpdate(); }
     @GetMapping("/cache")
     public List<TestPO> cache(){return testService.cacheTest(); }
+    @GetMapping("/testSync")
+    public void testSync(){testService.testSync(); }
+
 }

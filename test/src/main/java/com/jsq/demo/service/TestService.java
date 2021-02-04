@@ -1,6 +1,8 @@
 package com.jsq.demo.service;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.jsq.component.manager.RedisCacheManualManager;
 import com.jsq.component.manager.RedisCacheSyncManager;
 import com.jsq.demo.dao.TestMapper;
 import com.jsq.demo.pojo.TestPO;
@@ -21,6 +23,8 @@ public class TestService {
     private TestMapper testMapper;
     @Autowired
     private RedisCacheSyncManager redisCacheSyncManager;
+    @Autowired
+    private RedisCacheManualManager redisCacheManualManager;
 
     public Integer testBatchInsert() {
         List<TestPO> testPOList = Lists.newArrayList();
@@ -69,5 +73,9 @@ public class TestService {
         List<TestPO> testPOList = createPOUpdate(Lists.newArrayList(1L,2L,3L));
         redisCacheSyncManager.init(testPOList);
         return testPOList;
+    }
+
+    public void testSync() {
+        redisCacheManualManager.manualAll(Sets.newHashSet("test"));
     }
 }

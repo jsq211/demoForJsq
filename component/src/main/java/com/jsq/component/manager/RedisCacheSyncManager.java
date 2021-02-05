@@ -56,15 +56,23 @@ public class RedisCacheSyncManager {
         Map<String, RedisCacheInput> redisCacheInputMap = Maps.newHashMap();
         Field[] fields = clazz.getDeclaredFields();
         List<String> redisKeys = addRedisKeys(object,fields,fieldMap,redisCacheInputMap);
-        redisKeys.forEach(redisKey->{
+        for (String redisKey: redisKeys) {
             Object obj = RedisUtil.getInstance().getObj(redisKey);
-            if (Objects.nonNull(obj) && obj instanceof JSONObject){
-                String fieldName = fieldMap.get(redisKey);
-                RedisCacheInput redisCacheInput = redisCacheInputMap.get(redisKey);
+            if (Objects.isNull(obj)){
+                continue;
+            }
+            String fieldName = fieldMap.get(redisKey);
+            RedisCacheInput redisCacheInput = redisCacheInputMap.get(redisKey);
+            if ( obj instanceof JSONObject){
                 Object value = ((JSONObject) obj).get(redisCacheInput.outPutKey());
                 setFieldValue(object,fieldName,value);
+                continue;
             }
-        });
+            if (obj instanceof Map){
+                Object value = ((Map) obj).get(redisCacheInput.outPutKey());
+                setFieldValue(object,fieldName,value);
+            }
+        }
     }
 
     private List<String> addRedisKeys(Object object, Field[] fields, Map<String, String> fieldMap,

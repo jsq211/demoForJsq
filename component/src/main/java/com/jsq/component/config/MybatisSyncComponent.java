@@ -1,5 +1,6 @@
 package com.jsq.component.config;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.jsq.component.event.RedisUpdateEvent;
 import com.jsq.component.util.BeanUtil;
@@ -22,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 同步redis
@@ -98,14 +101,38 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware, Asy
 
     private String getTableName(ParameterMap parameterMap) {
         Class<?> clazz = parameterMap.getType();
-        TableName tableName = clazz.getAnnotation(TableName.class);
-        return tableName.value();
+        try {
+            TableName tableName = clazz.getAnnotation(TableName.class);
+            return tableName.value();
+        } catch (NullPointerException e) {
+            String clazzName = clazz.getSimpleName();
+            return castTableName(clazzName);
+        }
+    }
+
+    private String castTableName(String clazzName) {
+        if (StringUtils.isNullOrEmpty(clazzName)){
+            return "";
+        }
+        StringBuilder builder=new StringBuilder(clazzName);
+        Pattern p = Pattern.compile("[A-Z]");
+        Matcher mc=p.matcher(clazzName);
+        int len = 0;
+        while(mc.find()){
+            if (len == 0) {
+                builder.replace(mc.start(), mc.end(), mc.group().toLowerCase());
+            } else {
+                builder.replace(mc.start(), mc.end(), "_" + mc.group().toLowerCase());
+            }
+            len++;
+        }
+        return builder.toString();
     }
 
     private void setRedisSingle(String database, Object parameter, String tableName) {
         try {
             String id = String.valueOf(PropertyUtils.getProperty(parameter,"id"));
-            redisUtil.set(String.format(KEY_FORMAT,database,tableName,id),parameter);
+            redisUtil.set(String.format(KEY_FORMAT,database,tableName,id), JSONObject.toJSON(parameter));
         } catch (Exception e) {
             logger.info("sync failed message:{}",e.getMessage());
         }
@@ -116,7 +143,7 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware, Asy
             List<Object> entityList = ((Map<?, List<Object>>) parameter).get("list");
             for (Object object:entityList ) {
                 String id = String.valueOf(PropertyUtils.getProperty(object,"id"));
-                redisUtil.set(String.format(KEY_FORMAT,database,tableName,id),object);
+                redisUtil.set(String.format(KEY_FORMAT,database,tableName,id),JSONObject.toJSON(object));
             }
         } catch (Exception e) {
             logger.info("sync failed message:{}",e.getMessage());
@@ -135,7 +162,7 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware, Asy
                 updateRedisList(databaseName,parameter,table);
                 return;
             }
-            updateRedisSingle(databaseName,parameter,table,clazz);
+            updateRedisSingle(databaseName,parameter,table);
             return;
         }
 
@@ -144,12 +171,12 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware, Asy
                 updateRedisList(databaseName,parameter,table);
                 return;
             }
-            updateRedisSingle(databaseName,parameter,table,clazz);
+            updateRedisSingle(databaseName,parameter,table);
         }
 
     }
 
-    private void updateRedisSingle(String databaseName, Object parameter, String tableName,Class<?> clazz) {
+    private void updateRedisSingle(String databaseName, Object parameter, String tableName) {
         try {
             String id = String.valueOf(PropertyUtils.getProperty(parameter,"id"));
             String redisKey = String.format(KEY_FORMAT,databaseName,tableName,id);
@@ -158,8 +185,8 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware, Asy
                 applicationEventPublisher.publishEvent(new RedisUpdateEvent(redisKey,databaseName,tableName,Long.valueOf(id)));
                 return;
             }
-            BeanUtil.copyPropertiesIgnoreNull(clazz.newInstance(),object);
-            redisUtil.set(redisKey,object);
+            BeanUtil.copyPropertiesIgnoreNull(parameter,object);
+            redisUtil.set(redisKey,JSONObject.toJSON(parameter));
         } catch (Exception e) {
             logger.info("sync failed message:{}",e.getMessage());
         }
@@ -177,7 +204,7 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware, Asy
                     continue;
                 }
                 BeanUtil.copyPropertiesIgnoreNull(obj,object);
-                redisUtil.set(redisKey,object);
+                redisUtil.set(redisKey,JSONObject.toJSON(object));
             }
 
         } catch (Exception e) {

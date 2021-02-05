@@ -21,7 +21,8 @@ public class DatabaseConfig {
         if (null == databaseName){
             synchronized (DatabaseConfig.class){
                 if (null == databaseName){
-                    databaseName = url.substring(url.lastIndexOf("/")+1,url.indexOf("?"));
+                    String databaseMsg = url.substring(0,url.indexOf("?"));
+                    databaseName = databaseMsg.substring(databaseMsg.lastIndexOf("/")+1);
                 }
             }
         }

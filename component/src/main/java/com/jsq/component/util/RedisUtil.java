@@ -1,8 +1,10 @@
 package com.jsq.component.util;
 
-import org.springframework.data.redis.core.*;
+import org.springframework.data.redis.core.ListOperations;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SetOperations;
+import org.springframework.data.redis.core.ValueOperations;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -98,5 +100,12 @@ public class RedisUtil {
 
     public RedisTemplate<String,Object> getRedisTemplate(){
         return redisTemplate;
+    }
+
+    public Boolean delete(String redisKey) {
+        return redisTemplate.delete(redisKey);
+    }
+    public Long delete(Collection redisKeyList) {
+        return redisTemplate.delete(redisKeyList);
     }
 }

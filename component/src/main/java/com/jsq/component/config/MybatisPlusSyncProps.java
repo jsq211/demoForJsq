@@ -2,10 +2,12 @@ package com.jsq.component.config;
 
 import com.google.common.collect.Sets;
 import com.jsq.component.util.SpringUtil;
+import org.apache.commons.beanutils.PropertyUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
@@ -20,7 +22,7 @@ public class MybatisPlusSyncProps {
     @SuppressWarnings("all")
     private static volatile MybatisPlusSyncProps instance = null;
     private Map<String,String> sync;
-
+    private static final String LOGIC_DELETE = "logicDelete";
     private static final String ENABLED = "enabled";
     private static final String TABLE_LIST = "tableList";
     private static final String PREFIX = "prefix";
@@ -59,11 +61,30 @@ public class MybatisPlusSyncProps {
     }
 
     public String getPrefix() {
-
         try {
             return sync.get(PREFIX);
         } catch (Exception e) {
             return "";
         }
+    }
+    public Boolean isLogicDelete(Object obj){
+        String[] flag = getDeleteFlag();
+        if(flag.length!=2){
+            return false;
+        }
+        try {
+            Object flagValue = PropertyUtils.getProperty(obj,flag[0]);
+                return flag[1].equals(String.valueOf(flagValue));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private String[] getDeleteFlag() {
+        String logicDelete = sync.get(LOGIC_DELETE);
+        if (StringUtils.isEmpty(logicDelete)){
+            return new String[0];
+        }
+        return logicDelete.split(":");
     }
 }

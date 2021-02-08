@@ -78,4 +78,9 @@ public class TestService {
     public void testSync() {
         redisCacheManualManager.manualAll(Sets.newHashSet("test"));
     }
+
+    public Integer testBatchDelete() {
+
+        return null;
+    }
 }

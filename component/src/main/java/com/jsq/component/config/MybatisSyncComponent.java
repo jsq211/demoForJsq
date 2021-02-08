@@ -154,9 +154,7 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware, Asy
         if (notAllowed()){
             return;
         }
-        Class<?> clazz = parameterMap.getType();
-        TableName tableName = clazz.getAnnotation(TableName.class);
-        String table = tableName.value();
+        String table = getTableName(parameterMap);
         if (!CollectionUtils.isEmpty(tableList())&&(TABLE_SET.contains(table))){
             if (parameter instanceof Map){
                 updateRedisList(databaseName,parameter,table);
@@ -181,6 +179,11 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware, Asy
             String id = String.valueOf(PropertyUtils.getProperty(parameter,"id"));
             String redisKey = String.format(KEY_FORMAT,databaseName,tableName,id);
             Object object = redisUtil.getObj(redisKey);
+            Boolean isDelete = MybatisPlusSyncProps.getInstance().isLogicDelete(parameter);
+            if (isDelete){
+                deleteRedis(redisKey);
+                return;
+            }
             if (null ==object){
                 applicationEventPublisher.publishEvent(new RedisUpdateEvent(redisKey,databaseName,tableName,Long.valueOf(id)));
                 return;
@@ -198,6 +201,11 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware, Asy
             for (Object obj:entityList ) {
                 String id = String.valueOf(PropertyUtils.getProperty(obj,"id"));
                 String redisKey = String.format(KEY_FORMAT,databaseName,tableName,id);
+                Boolean isDelete = MybatisPlusSyncProps.getInstance().isLogicDelete(obj);
+                if (isDelete){
+                    deleteRedis(redisKey);
+                    continue;
+                }
                 Object object = redisUtil.getObj(redisKey);
                 if (null == object){
                     applicationEventPublisher.publishEvent(new RedisUpdateEvent(redisKey,databaseName,tableName,Long.valueOf(id)));
@@ -209,6 +217,13 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware, Asy
 
         } catch (Exception e) {
             logger.info("sync failed message:{}",e.getMessage());
+        }
+    }
+
+    private void deleteRedis(String redisKey) {
+        Object object = redisUtil.getObj(redisKey);
+        if (null != object){
+            redisUtil.delete(redisKey);
         }
     }
 

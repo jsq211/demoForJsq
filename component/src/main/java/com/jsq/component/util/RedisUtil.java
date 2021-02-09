@@ -7,6 +7,7 @@ import org.springframework.data.redis.core.ValueOperations;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -105,7 +106,18 @@ public class RedisUtil {
     public Boolean delete(String redisKey) {
         return redisTemplate.delete(redisKey);
     }
-    public Long delete(Collection redisKeyList) {
+    public Long delete(Collection<String> redisKeyList) {
         return redisTemplate.delete(redisKeyList);
+    }
+
+    public Boolean refreshAll(){
+        Set<String> keys = redisTemplate.keys("*");
+        try {
+            redisTemplate.delete(keys);
+            return Boolean.TRUE;
+        } catch (Exception e) {
+            return Boolean.FALSE;
+        }
+
     }
 }

@@ -1,6 +1,5 @@
 package com.jsq.component.interceptor;
 
-import com.google.common.collect.Lists;
 import com.jsq.component.config.DatabaseConfig;
 import com.jsq.component.config.MybatisSyncComponent;
 import net.sf.jsqlparser.parser.CCJSqlParserManager;
@@ -10,11 +9,9 @@ import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.SqlCommandType;
 import org.apache.ibatis.plugin.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 
 import java.io.StringReader;
-import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 
@@ -26,12 +23,17 @@ import java.util.Properties;
 @Intercepts({@Signature(type = Executor.class, method = "update", args = {MappedStatement.class, Object.class})})
 public class MybatisSyncInterceptor implements Interceptor {
 
-    private static CCJSqlParserManager pm = new CCJSqlParserManager();
+    private static final CCJSqlParserManager PARSER_MANAGER = new CCJSqlParserManager();
+    private static final TablesNamesFinder TABLES_NAMES_FINDER = new TablesNamesFinder();
 
-    @Autowired
-    private MybatisSyncComponent mybatisSyncComponent;
-    @Autowired
-    private DatabaseConfig databaseConfig;
+    private final MybatisSyncComponent mybatisSyncComponent;
+    private final DatabaseConfig databaseConfig;
+
+    public MybatisSyncInterceptor(MybatisSyncComponent mybatisSyncComponent, DatabaseConfig databaseConfig) {
+        this.mybatisSyncComponent = mybatisSyncComponent;
+        this.databaseConfig = databaseConfig;
+    }
+
     @Override
     public Object intercept(Invocation invocation) throws Throwable {
         MappedStatement mappedStatement = (MappedStatement) invocation.getArgs()[0];
@@ -55,12 +57,10 @@ public class MybatisSyncInterceptor implements Interceptor {
         }
         if (SqlCommandType.DELETE == sqlCommandType) {
             // 添加删除记录
-            List<String> tableNameList = Lists.newArrayList();
             Object result = invocation.proceed();
-            TablesNamesFinder tablesNamesFinder = new TablesNamesFinder();
             String sql = mappedStatement.getBoundSql(parameter).getSql();
-            Statement statement = pm.parse(new StringReader(sql));
-            tableNameList = tablesNamesFinder.getTableList(statement);
+            Statement statement = PARSER_MANAGER.parse(new StringReader(sql));
+            List<String> tableNameList = TABLES_NAMES_FINDER.getTableList(statement);
             if (CollectionUtils.isEmpty(tableNameList)){
                 return result;
             }

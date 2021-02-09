@@ -5,6 +5,8 @@ import com.google.common.collect.Maps;
 import com.jsq.component.config.DatabaseConfig;
 import com.jsq.component.config.MybatisPlusSyncProps;
 import com.jsq.component.util.RedisUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -31,19 +33,22 @@ public class RedisCacheManualManager {
 
     private static Pattern linePattern = Pattern.compile("_(\\w)");
 
+    private static final Logger logger = LoggerFactory.getLogger(RedisCacheManualManager.class);
+
     public RedisCacheManualManager(JdbcTemplate jdbcTemplate, DatabaseConfig databaseConfig) {
         this.jdbcTemplate = jdbcTemplate;
         this.databaseConfig = databaseConfig;
     }
 
     public void manualAll(Set<String> tableSet){
-        if (!MybatisPlusSyncProps.getInstance().isEnabled()){
+        logger.info("redis syn start,table:{}",tableSet);
+        if (!MybatisPlusSyncProps.getInstance().isEnabled()||CollectionUtils.isEmpty(tableSet)){
+            logger.info("redis syn end...");
             return;
         }
-        if (CollectionUtils.isEmpty(tableSet)){
-            return;
-        }
+
         tableSet.forEach(table->{
+            logger.info("redis syn table:【{}】",table);
             String tablePrefix = databaseConfig.getDatabaseName()+":"+table+":";
             SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet(String.format(COUNT,table));
             int rowCount = 0;
@@ -60,9 +65,8 @@ public class RedisCacheManualManager {
                 });
                 offset+=SIZE;
             }
-
         });
-
+        logger.info("redis syn end...");
     }
 
     private Map<String, JSONObject> getInsertMap(String keyPrefix, SqlRowSet insertList) {

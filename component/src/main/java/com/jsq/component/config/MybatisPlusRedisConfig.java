@@ -22,6 +22,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  */
 @Configuration
 @EnableAsync
+@SuppressWarnings("all")
 public class MybatisPlusRedisConfig {
 
     @Bean
@@ -31,13 +32,8 @@ public class MybatisPlusRedisConfig {
 
     @Bean
     @ConditionalOnBean(RedisUtil.class)
-    public MybatisSyncInterceptor mybatisSyncInterceptor(){
-        return new MybatisSyncInterceptor();
-    }
-    @Bean
-    @ConditionalOnBean(RedisUtil.class)
-    public MybatisSyncComponent mybatisSyncComponent(){
-        return new MybatisSyncComponent();
+    public MybatisSyncComponent mybatisSyncComponent(RedisUtil redisUtil){
+        return new MybatisSyncComponent(redisUtil);
     }
 
     @Bean
@@ -69,6 +65,12 @@ public class MybatisPlusRedisConfig {
     @ConditionalOnBean(MybatisSyncComponent.class)
     public RedisCacheSyncManager redisSyncManager(){
         return new RedisCacheSyncManager();
+    }
+
+    @Bean
+    @ConditionalOnBean(value = {MybatisSyncComponent.class,DatabaseConfig.class})
+    public MybatisSyncInterceptor mybatisSyncInterceptor(MybatisSyncComponent mybatisSyncComponent, DatabaseConfig databaseConfig){
+        return new MybatisSyncInterceptor(mybatisSyncComponent, databaseConfig);
     }
     @Bean
     @ConditionalOnBean(RedisCacheSyncManager.class)

@@ -12,7 +12,6 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.ibatis.mapping.ParameterMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.scheduling.annotation.Async;
@@ -20,7 +19,6 @@ import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.CollectionUtils;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,9 +40,13 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware, Asy
 
     private static final Logger logger = LoggerFactory.getLogger(MybatisSyncComponent.class);
 
-    @Autowired
-    private RedisUtil redisUtil;
+
+    private final RedisUtil redisUtil;
     private ApplicationEventPublisher applicationEventPublisher;
+
+    public MybatisSyncComponent(RedisUtil redisUtil) {
+        this.redisUtil = redisUtil;
+    }
 
     private static boolean notAllowed(){
         if (null == NOT_ALLOWED){

@@ -80,7 +80,10 @@ public class TestService {
     }
 
     public Integer testBatchDelete() {
+        return testMapper.deleteBatchIds(Lists.newArrayList(1,2,3));
+    }
 
-        return null;
+    public Integer testSingleDelete() {
+        return testMapper.deleteById(10L);
     }
 }

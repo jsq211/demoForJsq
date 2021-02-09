@@ -38,5 +38,8 @@ public class TestController {
     public List<TestPO> cache(){return testService.cacheTest(); }
     @GetMapping("/testSync")
     public void testSync(){testService.testSync(); }
-
+    @GetMapping("/batchDelete")
+    public void testDelete(){testService.testBatchDelete(); }
+    @GetMapping("/delete")
+    public void testSingleDelete(){testService.testSingleDelete(); }
 }

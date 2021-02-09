@@ -1,13 +1,21 @@
 package com.jsq.component.interceptor;
 
+import com.google.common.collect.Lists;
 import com.jsq.component.config.DatabaseConfig;
 import com.jsq.component.config.MybatisSyncComponent;
+import net.sf.jsqlparser.parser.CCJSqlParserManager;
+import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.util.TablesNamesFinder;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.SqlCommandType;
 import org.apache.ibatis.plugin.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 
+import java.io.StringReader;
+import java.util.Collection;
+import java.util.List;
 import java.util.Properties;
 
 
@@ -17,6 +25,8 @@ import java.util.Properties;
  */
 @Intercepts({@Signature(type = Executor.class, method = "update", args = {MappedStatement.class, Object.class})})
 public class MybatisSyncInterceptor implements Interceptor {
+
+    private static CCJSqlParserManager pm = new CCJSqlParserManager();
 
     @Autowired
     private MybatisSyncComponent mybatisSyncComponent;
@@ -45,7 +55,17 @@ public class MybatisSyncInterceptor implements Interceptor {
         }
         if (SqlCommandType.DELETE == sqlCommandType) {
             // 添加删除记录
-
+            List<String> tableNameList = Lists.newArrayList();
+            Object result = invocation.proceed();
+            TablesNamesFinder tablesNamesFinder = new TablesNamesFinder();
+            String sql = mappedStatement.getBoundSql(parameter).getSql();
+            Statement statement = pm.parse(new StringReader(sql));
+            tableNameList = tablesNamesFinder.getTableList(statement);
+            if (CollectionUtils.isEmpty(tableNameList)){
+                return result;
+            }
+            mybatisSyncComponent.deleteRedis(databaseConfig.getDatabaseName(),parameter,tableNameList.get(0));
+            return result;
         }
         return invocation.proceed();
     }

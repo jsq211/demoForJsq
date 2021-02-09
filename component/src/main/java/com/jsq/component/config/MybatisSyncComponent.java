@@ -2,6 +2,7 @@ package com.jsq.component.config;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.google.common.collect.Lists;
 import com.jsq.component.event.RedisUpdateEvent;
 import com.jsq.component.util.BeanUtil;
 import com.jsq.component.util.RedisUtil;
@@ -19,6 +20,7 @@ import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.CollectionUtils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -181,7 +183,7 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware, Asy
             Object object = redisUtil.getObj(redisKey);
             Boolean isDelete = MybatisPlusSyncProps.getInstance().isLogicDelete(parameter);
             if (isDelete){
-                deleteRedis(redisKey);
+                deleteRedisKey(redisKey);
                 return;
             }
             if (null ==object){
@@ -203,7 +205,7 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware, Asy
                 String redisKey = String.format(KEY_FORMAT,databaseName,tableName,id);
                 Boolean isDelete = MybatisPlusSyncProps.getInstance().isLogicDelete(obj);
                 if (isDelete){
-                    deleteRedis(redisKey);
+                    deleteRedisKey(redisKey);
                     continue;
                 }
                 Object object = redisUtil.getObj(redisKey);
@@ -220,7 +222,7 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware, Asy
         }
     }
 
-    private void deleteRedis(String redisKey) {
+    private void deleteRedisKey(String redisKey) {
         Object object = redisUtil.getObj(redisKey);
         if (null != object){
             redisUtil.delete(redisKey);
@@ -235,5 +237,52 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware, Asy
     @Override
     public Executor getAsyncExecutor() {
         return (ThreadPoolTaskExecutor)SpringUtil.getBean("redisAsyncTaskExecutor");
+    }
+
+    public void deleteRedis(String databaseName, Object parameter, String table) {
+        if (notAllowed()){
+            return;
+        }
+        if (!CollectionUtils.isEmpty(tableList())&&(TABLE_SET.contains(table))){
+            if (parameter instanceof Map){
+                deleteRedisList(databaseName,parameter,table);
+                return;
+            }
+            deleteRedisSingle(databaseName,parameter,table);
+            return;
+        }
+
+        if (StringUtils.isNullOrEmpty(getPrefix()) && table.startsWith(getPrefix())){
+            if (parameter instanceof Map){
+                deleteRedisList(databaseName,parameter,table);
+                return;
+            }
+            deleteRedisSingle(databaseName,parameter,table);
+        }
+    }
+
+    private void deleteRedisSingle(String databaseName, Object parameter, String tableName) {
+        try {
+            String id = String.valueOf(parameter);
+            String redisKey = String.format(KEY_FORMAT,databaseName,tableName,id);
+            deleteRedisKey(redisKey);
+        } catch (Exception e) {
+            logger.info("sync failed message:{}",e.getMessage());
+        }
+    }
+
+    private void deleteRedisList(String databaseName, Object parameter, String tableName) {
+        try {
+            List<Object> entityList = ((Map<?, List<Object>>) parameter).get("coll");
+            List<String> redisKeyList = Lists.newArrayList();
+            for (Object obj:entityList ) {
+                String id = String.valueOf(obj);
+                String redisKey = String.format(KEY_FORMAT,databaseName,tableName,id);
+                redisKeyList.add(redisKey);
+            }
+            redisUtil.delete(redisKeyList);
+        } catch (Exception e) {
+            logger.info("sync failed message:{}",e.getMessage());
+        }
     }
 }

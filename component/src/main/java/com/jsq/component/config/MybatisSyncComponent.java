@@ -20,7 +20,6 @@ import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.CollectionUtils;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,6 +32,7 @@ import java.util.regex.Pattern;
  * @author jsq
  */
 @Async("redisAsyncTaskExecutor")
+@SuppressWarnings("all")
 public class MybatisSyncComponent implements ApplicationEventPublisherAware, AsyncConfigurer {
 
     private static volatile Boolean NOT_ALLOWED = null;

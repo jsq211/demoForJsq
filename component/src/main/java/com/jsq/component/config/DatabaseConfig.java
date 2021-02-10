@@ -1,6 +1,7 @@
 package com.jsq.component.config;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -10,7 +11,8 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ConfigurationProperties(prefix = "spring.datasource")
-@Data
+@Getter
+@Setter
 public class DatabaseConfig {
     private String url;
     private String userName;

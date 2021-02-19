@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
  * @author jsq
  */
 @Configuration
-public class MybatisPlusConfig {
+public class MybatisExtendPlusConfig {
     @Bean
     public MySqlInjector sqlInjector() {
         return new MySqlInjector();

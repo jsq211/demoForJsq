@@ -10,18 +10,18 @@ import java.util.Optional;
 @Slf4j
 public abstract class AbstractOgnlRuleEngine<R, P> implements RuleEngine<R, P> {
 
-    private Object matchExpression;
+    private final Object matchExpression;
 
     private final R result;
 
-    public AbstractOgnlRuleEngine(String matchRule, R r) {
+    protected AbstractOgnlRuleEngine(String matchRule, R r) {
 
         try {
             this.matchExpression = Ognl.parseExpression(matchRule);
             result = r;
         } catch (OgnlException e) {
             log.error(matchRule, e);
-            throw new RuntimeException(e.getMessage());
+            throw new ApiException(e.getMessage());
         }
     }
 

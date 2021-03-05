@@ -1,9 +1,10 @@
-package com.jsq.demo;
+package com.jsq.component.util;
 
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.util.StringUtils;
 
 import java.util.Properties;
 
@@ -23,6 +24,9 @@ public class SpringPropertyUtils {
      * @return
      */
     public static Object getYml(Object key, String yml) {
+        if (StringUtils.isEmpty(key)){
+            return null;
+        }
         Resource resource = new ClassPathResource(yml);
         Properties properties;
         try {

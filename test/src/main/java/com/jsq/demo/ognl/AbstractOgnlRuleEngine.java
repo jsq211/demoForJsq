@@ -1,4 +1,4 @@
-package com.jsq.component.ognl;
+package com.jsq.demo.ognl;
 
 import com.baomidou.mybatisplus.extension.exceptions.ApiException;
 import lombok.extern.slf4j.Slf4j;

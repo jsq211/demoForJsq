@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jsq.component.annotation.RedisCacheInput;
+import com.jsq.component.implement.RedisCacheObject;
 import com.jsq.component.util.RedisUtil;
 import com.jsq.component.util.SpringUtil;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -15,6 +16,7 @@ import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author jsq
@@ -56,6 +58,9 @@ public class RedisCacheSyncManager {
         Map<String, RedisCacheInput> redisCacheInputMap = Maps.newHashMap();
         Field[] fields = clazz.getDeclaredFields();
         List<String> redisKeys = addRedisKeys(object,fields,fieldMap,redisCacheInputMap);
+        if (CollectionUtils.isEmpty(redisKeys)){
+            return;
+        }
         for (String redisKey: redisKeys) {
             Object obj = RedisUtil.getInstance().getObj(redisKey);
             if (Objects.isNull(obj)){

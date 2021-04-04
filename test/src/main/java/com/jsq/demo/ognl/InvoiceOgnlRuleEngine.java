@@ -1,11 +1,10 @@
-package com.jsq.component.ognl;
+package com.jsq.demo.ognl;
 
 import ognl.MapPropertyAccessor;
 import ognl.OgnlException;
 import ognl.OgnlRuntime;
 
 import java.text.NumberFormat;
-import java.util.Arrays;
 import java.util.Map;
 
 public class InvoiceOgnlRuleEngine extends AbstractOgnlRuleEngine<Boolean, Object> {

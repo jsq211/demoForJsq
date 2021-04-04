@@ -21,10 +21,13 @@ import java.util.UUID;
 public class TestService {
     @Resource
     private TestMapper testMapper;
-    @Autowired
-    private RedisCacheSyncManager redisCacheSyncManager;
-    @Autowired
-    private RedisCacheManualManager redisCacheManualManager;
+    private final RedisCacheSyncManager redisCacheSyncManager;
+    private final RedisCacheManualManager redisCacheManualManager;
+
+    public TestService(RedisCacheSyncManager redisCacheSyncManager, RedisCacheManualManager redisCacheManualManager) {
+        this.redisCacheSyncManager = redisCacheSyncManager;
+        this.redisCacheManualManager = redisCacheManualManager;
+    }
 
     public Integer testBatchInsert() {
         List<TestPO> testPOList = Lists.newArrayList();
@@ -36,8 +39,8 @@ public class TestService {
 
     private TestPO createPO(int i) {
         TestPO testPO = new TestPO();
-        testPO.setN(String.valueOf(i));
-        testPO.setName(UUID.randomUUID().toString());
+//        testPO.setN(String.valueOf(i));
+//        testPO.setName(UUID.randomUUID().toString());
         return testPO;
     }
 
@@ -56,8 +59,8 @@ public class TestService {
         List<TestPO> testPOList = Lists.newArrayList();
         list.forEach(e->{
             TestPO po = new TestPO();
-            po.setEnabled(false);
-            po.setId(e);
+//            po.setEnabled(false);
+//            po.setId(e);
             testPOList.add(po);
         });
         return testPOList;

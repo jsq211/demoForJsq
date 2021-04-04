@@ -5,7 +5,9 @@ import com.jsq.component.interceptor.MybatisSyncInterceptor;
 import com.jsq.component.manager.RedisCacheManualManager;
 import com.jsq.component.manager.RedisCacheSyncManager;
 import com.jsq.component.util.RedisUtil;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ApplicationEventMulticaster;
@@ -23,13 +25,12 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @Configuration
 @EnableAsync
 @SuppressWarnings("all")
+@ConditionalOnProperty(prefix = "jsq.sync",name = "enabled",havingValue = "true")
 public class MybatisPlusRedisConfig {
-
     @Bean
-    public RedisUtil redisUtil(RedisTemplate<String,Object> redisTemplate){
+    public RedisUtil redisUtil(@Qualifier(value = "redisSyncTemplate") RedisTemplate<String,Object> redisTemplate){
         return new RedisUtil(redisTemplate);
     }
-
     @Bean
     @ConditionalOnBean(RedisUtil.class)
     public MybatisSyncComponent mybatisSyncComponent(RedisUtil redisUtil){

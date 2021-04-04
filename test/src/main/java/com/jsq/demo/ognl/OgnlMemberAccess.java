@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.jsq.component.ognl;
+package com.jsq.demo.ognl;
 
 import ognl.MemberAccess;
 

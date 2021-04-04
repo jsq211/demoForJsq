@@ -2,11 +2,9 @@ package com.jsq.demo.pojo;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
-@Getter
-@Setter
+
+@Data
 @TableName("test")
 public class TestPO extends TestParentPO {
 

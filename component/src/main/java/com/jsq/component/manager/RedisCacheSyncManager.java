@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jsq.component.annotation.RedisCacheInput;
-import com.jsq.component.implement.RedisCacheObject;
 import com.jsq.component.util.RedisUtil;
 import com.jsq.component.util.SpringUtil;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -15,8 +14,9 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author jsq

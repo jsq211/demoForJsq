@@ -1,6 +1,7 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-  com.jsq.component.config.MybatisExtendPlusConfig,\
   com.jsq.component.config.RedisSyncConfig,\
+  com.jsq.component.config.DatabaseConfig,\
+  com.jsq.component.config.MybatisExtendPlusConfig,\
   com.jsq.component.config.MybatisPlusRedisConfig,\
-  com.jsq.component.config.MybatisPlusSyncProps,\
-  com.jsq.component.config.DatabaseConfig
+  com.jsq.component.config.MybatisPlusSyncProps
+  

@@ -6,15 +6,15 @@ import com.jsq.component.manager.RedisCacheManualManager;
 import com.jsq.component.manager.RedisCacheSyncManager;
 import com.jsq.component.util.RedisUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 
@@ -23,9 +23,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  * @author jsq
  */
 @Configuration
-@EnableAsync
 @SuppressWarnings("all")
-@ConditionalOnProperty(prefix = "jsq.sync",name = "enabled",havingValue = "true")
+@AutoConfigureAfter(value = {RedisSyncConfig.class,DatabaseConfig.class})
 public class MybatisPlusRedisConfig {
     @Bean
     public RedisUtil redisUtil(@Qualifier(value = "redisSyncTemplate") RedisTemplate<String,Object> redisTemplate){
@@ -43,7 +42,7 @@ public class MybatisPlusRedisConfig {
         return new RedisUpdateSyncListener();
     }
 
-    @Bean
+    @Bean("redisAsyncTaskExecutor")
     @ConditionalOnBean(RedisUpdateSyncListener.class)
     public ThreadPoolTaskExecutor redisAsyncTaskExecutor() {
         ThreadPoolTaskExecutor factory = new ThreadPoolTaskExecutor();
@@ -63,7 +62,7 @@ public class MybatisPlusRedisConfig {
     }
 
     @Bean
-    @ConditionalOnBean(MybatisSyncComponent.class)
+    @DependsOn("mybatisSyncComponent")
     public RedisCacheSyncManager redisSyncManager(){
         return new RedisCacheSyncManager();
     }

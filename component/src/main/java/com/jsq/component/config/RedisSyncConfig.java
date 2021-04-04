@@ -1,6 +1,7 @@
 package com.jsq.component.config;
 
 import com.jsq.component.factory.RedisFactory;
+import com.jsq.component.util.SpringUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -31,6 +32,10 @@ public class RedisSyncConfig {
         return new RedisSyncProperties();
     }
 
+    @Bean
+    public SpringUtil springUtil(){
+        return new SpringUtil();
+    }
     @Bean("redisSyncConnectionFactory")
     @ConditionalOnBean(RedisSyncProperties.class)
     public LettuceConnectionFactory redisSyncConnectionFactory(RedisSyncProperties redisSyncProperties){

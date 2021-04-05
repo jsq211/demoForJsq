@@ -46,7 +46,9 @@ public class RedisCacheManualManager {
             logger.info("redis syn end...");
             return;
         }
-
+        if (tableSet.contains("*")){
+            tableSet = MybatisPlusSyncProps.getInstance().getTableList();
+        }
         tableSet.forEach(table->{
             logger.info("redis syn table:【{}】",table);
             String tablePrefix = databaseConfig.getDatabaseName()+":"+table+":";

@@ -26,12 +26,12 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @SuppressWarnings("all")
 @AutoConfigureAfter(value = {RedisSyncConfig.class,DatabaseConfig.class})
 public class MybatisPlusRedisConfig {
-    @Bean
+    @Bean("redisSyncUtil")
     public RedisUtil redisUtil(@Qualifier(value = "redisSyncTemplate") RedisTemplate<String,Object> redisTemplate){
         return new RedisUtil(redisTemplate);
     }
     @Bean
-    @ConditionalOnBean(RedisUtil.class)
+    @ConditionalOnBean(name ="redisSyncUtil")
     public MybatisSyncComponent mybatisSyncComponent(RedisUtil redisUtil){
         return new MybatisSyncComponent(redisUtil);
     }

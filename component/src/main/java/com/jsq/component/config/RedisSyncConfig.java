@@ -32,7 +32,7 @@ public class RedisSyncConfig {
         return new RedisSyncProperties();
     }
 
-    @Bean
+    @Bean("redisSpringUtil")
     public SpringUtil springUtil(){
         return new SpringUtil();
     }

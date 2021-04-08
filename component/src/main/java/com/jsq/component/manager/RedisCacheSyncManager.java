@@ -27,7 +27,7 @@ public class RedisCacheSyncManager {
 
     private static RedisCacheSyncManager instance = null;
 
-    private static final String REDIS_KEY_FORMAT = "%s:%s:%s";
+    private static final String REDIS_KEY_FORMAT = "%s:%s";
 
     public static RedisCacheSyncManager getInstance() {
         if (instance == null) {
@@ -101,7 +101,7 @@ public class RedisCacheSyncManager {
         try {
             RedisCacheInput redisCacheInput = field.getAnnotation(RedisCacheInput.class);
             Object id = PropertyUtils.getProperty(object,redisCacheInput.inputKey());
-            String key = String.format(REDIS_KEY_FORMAT,redisCacheInput.database(),redisCacheInput.table(),String.valueOf(id));
+            String key = String.format(REDIS_KEY_FORMAT,redisCacheInput.table(), id);
             redisKeys.add(key);
             return key;
         } catch (Exception e) {

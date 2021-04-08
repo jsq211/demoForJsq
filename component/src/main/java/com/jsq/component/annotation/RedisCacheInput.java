@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RedisCacheInput {
-    String database();
+//    String database();
     String table();
     String inputKey();
     String outPutKey();

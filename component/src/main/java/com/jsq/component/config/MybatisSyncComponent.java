@@ -82,7 +82,7 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware, Asy
         }
         return PREFIX;
     }
-    public void insertRedis(String database, Object parameter, ParameterMap parameterMap) {
+    public void insertRedis(Object parameter, ParameterMap parameterMap) {
         if (notAllowed()){
             return;
         }
@@ -90,17 +90,17 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware, Asy
 
         if (!CollectionUtils.isEmpty(tableList())&&(TABLE_SET.contains(table))){
             if (parameter instanceof Map){
-                setRedisList(database,parameter,table);
+                setRedisList(parameter,table);
             }
-            setRedisSingle(database,parameter,table);
+            setRedisSingle(parameter,table);
             return;
         }
 
         if (StringUtils.isNullOrEmpty(getPrefix()) && table.startsWith(getPrefix())){
             if (parameter instanceof Map){
-                setRedisList(database,parameter,table);
+                setRedisList(parameter,table);
             }
-            setRedisSingle(database,parameter,table);
+            setRedisSingle(parameter,table);
         }
     }
 
@@ -134,55 +134,55 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware, Asy
         return builder.toString();
     }
 
-    private void setRedisSingle(String database, Object parameter, String tableName) {
+    private void setRedisSingle(Object parameter, String tableName) {
         try {
             String id = String.valueOf(PropertyUtils.getProperty(parameter,"id"));
-            redisUtil.set(String.format(KEY_FORMAT,database,tableName,id), JSONObject.toJSON(parameter));
+            redisUtil.set(String.format(KEY_FORMAT,tableName,id), JSONObject.toJSON(parameter));
         } catch (Exception e) {
             logger.info("sync failed message:{}",e.getMessage());
         }
     }
 
-    private void setRedisList(String database, Object parameter, String tableName) {
+    private void setRedisList(Object parameter, String tableName) {
         try {
             List<Object> entityList = ((Map<?, List<Object>>) parameter).get("list");
             for (Object object:entityList ) {
                 String id = String.valueOf(PropertyUtils.getProperty(object,"id"));
-                redisUtil.set(String.format(KEY_FORMAT,database,tableName,id),JSONObject.toJSON(object));
+                redisUtil.set(String.format(KEY_FORMAT,tableName,id),JSONObject.toJSON(object));
             }
         } catch (Exception e) {
             logger.info("sync failed message:{}",e.getMessage());
         }
     }
 
-    public void updateRedis(String databaseName, Object parameter, ParameterMap parameterMap) {
+    public void updateRedis(Object parameter, ParameterMap parameterMap) {
         if (notAllowed()){
             return;
         }
         String table = getTableName(parameterMap);
         if (!CollectionUtils.isEmpty(tableList())&&(TABLE_SET.contains(table))){
             if (parameter instanceof Map){
-                updateRedisList(databaseName,parameter,table);
+                updateRedisList(parameter,table);
                 return;
             }
-            updateRedisSingle(databaseName,parameter,table);
+            updateRedisSingle(parameter,table);
             return;
         }
 
         if (StringUtils.isNullOrEmpty(getPrefix()) && table.startsWith(getPrefix())){
             if (parameter instanceof Map){
-                updateRedisList(databaseName,parameter,table);
+                updateRedisList(parameter,table);
                 return;
             }
-            updateRedisSingle(databaseName,parameter,table);
+            updateRedisSingle(parameter,table);
         }
 
     }
 
-    private void updateRedisSingle(String databaseName, Object parameter, String tableName) {
+    private void updateRedisSingle(Object parameter, String tableName) {
         try {
             String id = String.valueOf(PropertyUtils.getProperty(parameter,"id"));
-            String redisKey = String.format(KEY_FORMAT,databaseName,tableName,id);
+            String redisKey = String.format(KEY_FORMAT,tableName,id);
             Object object = redisUtil.getObj(redisKey);
             Boolean isDelete = MybatisPlusSyncProps.getInstance().isLogicDelete(parameter);
             if (isDelete){
@@ -190,7 +190,7 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware, Asy
                 return;
             }
             if (null ==object){
-                applicationEventPublisher.publishEvent(new RedisUpdateEvent(redisKey,databaseName,tableName,Long.valueOf(id)));
+                applicationEventPublisher.publishEvent(new RedisUpdateEvent(redisKey,tableName,Long.valueOf(id)));
                 return;
             }
             BeanUtil.copyPropertiesIgnoreNull(parameter,object);
@@ -200,12 +200,12 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware, Asy
         }
     }
 
-    private void updateRedisList(String databaseName, Object parameter, String tableName) {
+    private void updateRedisList(Object parameter, String tableName) {
         try {
             List<Object> entityList = ((Map<?, List<Object>>) parameter).get("list");
             for (Object obj:entityList ) {
                 String id = String.valueOf(PropertyUtils.getProperty(obj,"id"));
-                String redisKey = String.format(KEY_FORMAT,databaseName,tableName,id);
+                String redisKey = String.format(KEY_FORMAT,tableName,id);
                 Boolean isDelete = MybatisPlusSyncProps.getInstance().isLogicDelete(obj);
                 if (isDelete){
                     deleteRedisKey(redisKey);
@@ -213,7 +213,7 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware, Asy
                 }
                 Object object = redisUtil.getObj(redisKey);
                 if (null == object){
-                    applicationEventPublisher.publishEvent(new RedisUpdateEvent(redisKey,databaseName,tableName,Long.valueOf(id)));
+                    applicationEventPublisher.publishEvent(new RedisUpdateEvent(redisKey,tableName,Long.valueOf(id)));
                     continue;
                 }
                 BeanUtil.copyPropertiesIgnoreNull(obj,object);
@@ -242,45 +242,45 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware, Asy
         return (ThreadPoolTaskExecutor)SpringUtil.getBean("redisAsyncTaskExecutor");
     }
 
-    public void deleteRedis(String databaseName, Object parameter, String table) {
+    public void deleteRedis(Object parameter, String table) {
         if (notAllowed()){
             return;
         }
         if (!CollectionUtils.isEmpty(tableList())&&(TABLE_SET.contains(table))){
             if (parameter instanceof Map){
-                deleteRedisList(databaseName,parameter,table);
+                deleteRedisList(parameter,table);
                 return;
             }
-            deleteRedisSingle(databaseName,parameter,table);
+            deleteRedisSingle(parameter,table);
             return;
         }
 
         if (StringUtils.isNullOrEmpty(getPrefix()) && table.startsWith(getPrefix())){
             if (parameter instanceof Map){
-                deleteRedisList(databaseName,parameter,table);
+                deleteRedisList(parameter,table);
                 return;
             }
-            deleteRedisSingle(databaseName,parameter,table);
+            deleteRedisSingle(parameter,table);
         }
     }
 
-    private void deleteRedisSingle(String databaseName, Object parameter, String tableName) {
+    private void deleteRedisSingle(Object parameter, String tableName) {
         try {
             String id = String.valueOf(parameter);
-            String redisKey = String.format(KEY_FORMAT,databaseName,tableName,id);
+            String redisKey = String.format(KEY_FORMAT,tableName,id);
             deleteRedisKey(redisKey);
         } catch (Exception e) {
             logger.info("sync failed message:{}",e.getMessage());
         }
     }
 
-    private void deleteRedisList(String databaseName, Object parameter, String tableName) {
+    private void deleteRedisList(Object parameter, String tableName) {
         try {
             List<Object> entityList = ((Map<?, List<Object>>) parameter).get("coll");
             List<String> redisKeyList = Lists.newArrayList();
             for (Object obj:entityList ) {
                 String id = String.valueOf(obj);
-                String redisKey = String.format(KEY_FORMAT,databaseName,tableName,id);
+                String redisKey = String.format(KEY_FORMAT,tableName,id);
                 redisKeyList.add(redisKey);
             }
             redisUtil.delete(redisKeyList);

@@ -74,8 +74,8 @@ public class MybatisPlusRedisConfig {
     }
     @Bean
     @ConditionalOnBean(RedisCacheSyncManager.class)
-    public RedisCacheManualManager redisCacheManualManager(JdbcTemplate jdbcTemplate,DatabaseConfig databaseConfig){
-        return new RedisCacheManualManager(jdbcTemplate,databaseConfig);
+    public RedisCacheManualManager redisCacheManualManager(JdbcTemplate jdbcTemplate){
+        return new RedisCacheManualManager(jdbcTemplate);
     }
 
 }

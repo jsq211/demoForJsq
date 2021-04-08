@@ -29,15 +29,12 @@ public class RedisCacheManualManager {
     private static final Integer SIZE = 1000;
     private final JdbcTemplate jdbcTemplate;
 
-    private final DatabaseConfig databaseConfig;
-
     private static Pattern linePattern = Pattern.compile("_(\\w)");
 
     private static final Logger logger = LoggerFactory.getLogger(RedisCacheManualManager.class);
 
-    public RedisCacheManualManager(JdbcTemplate jdbcTemplate, DatabaseConfig databaseConfig) {
+    public RedisCacheManualManager(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
-        this.databaseConfig = databaseConfig;
     }
 
     public void manualAll(Set<String> tableSet){
@@ -51,7 +48,7 @@ public class RedisCacheManualManager {
         }
         tableSet.forEach(table->{
             logger.info("redis syn table:【{}】",table);
-            String tablePrefix = databaseConfig.getDatabaseName()+":"+table+":";
+            String tablePrefix = table+":";
             SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet(String.format(COUNT,table));
             int rowCount = 0;
             if(sqlRowSet.next()) {

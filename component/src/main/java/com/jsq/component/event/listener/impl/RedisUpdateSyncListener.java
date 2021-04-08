@@ -18,7 +18,7 @@ import org.springframework.scheduling.annotation.Async;
 
 public class RedisUpdateSyncListener implements ApplicationListener<RedisUpdateEvent> {
     private static final Logger logger = LoggerFactory.getLogger(RedisUpdateSyncListener.class);
-    private static final String SELECT_SQL = "select * from `%s`.`%s` where id = %s";
+    private static final String SELECT_SQL = "select * from `%s` where id = %s";
     private static final String KEY_FORMAT= "%s:%s:%s";
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -37,12 +37,12 @@ public class RedisUpdateSyncListener implements ApplicationListener<RedisUpdateE
             for (String columnName: sqlRowSet.getMetaData().getColumnNames()) {
                 jsonObject.put(columnName,sqlRowSet.getString(columnName));
             }
-            RedisUtil.getInstance().set(String.format(KEY_FORMAT,redisUpdateEvent.getDatabaseName(),redisUpdateEvent.getTableName(),redisUpdateEvent.getId()),jsonObject);
+            RedisUtil.getInstance().set(String.format(KEY_FORMAT,redisUpdateEvent.getTableName(),redisUpdateEvent.getId()),jsonObject);
         }
     }
 
     private String createUpdateSql(RedisUpdateEvent redisUpdateEvent) {
-        return String.format(SELECT_SQL,redisUpdateEvent.getDatabaseName(),redisUpdateEvent.getTableName(),redisUpdateEvent.getId());
+        return String.format(SELECT_SQL,redisUpdateEvent.getTableName(),redisUpdateEvent.getId());
     }
 
 }

@@ -46,13 +46,13 @@ public class MybatisSyncInterceptor implements Interceptor {
         }
         if (SqlCommandType.INSERT == sqlCommandType) {
             Object result = invocation.proceed();
-            mybatisSyncComponent.insertRedis(databaseConfig.getDatabaseName(),parameter,mappedStatement.getParameterMap());
+            mybatisSyncComponent.insertRedis(parameter,mappedStatement.getParameterMap());
             return result;
         }
         if (SqlCommandType.UPDATE == sqlCommandType) {
             // 添加修改记录
             Object result = invocation.proceed();
-            mybatisSyncComponent.updateRedis(databaseConfig.getDatabaseName(),parameter,mappedStatement.getParameterMap());
+            mybatisSyncComponent.updateRedis(parameter,mappedStatement.getParameterMap());
             return result;
         }
         if (SqlCommandType.DELETE == sqlCommandType) {
@@ -64,7 +64,7 @@ public class MybatisSyncInterceptor implements Interceptor {
             if (CollectionUtils.isEmpty(tableNameList)){
                 return result;
             }
-            mybatisSyncComponent.deleteRedis(databaseConfig.getDatabaseName(),parameter,tableNameList.get(0));
+            mybatisSyncComponent.deleteRedis(parameter,tableNameList.get(0));
             return result;
         }
         return invocation.proceed();

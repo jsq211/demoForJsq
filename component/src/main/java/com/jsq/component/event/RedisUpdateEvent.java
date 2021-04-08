@@ -12,18 +12,16 @@ import org.springframework.util.StringUtils;
 @ToString
 public class RedisUpdateEvent extends BaseRedisEvent {
     private static final String EVENT_NAME = "RedisUpdateEvent";
-    private String databaseName;
     private String tableName;
     private Long id;
 
-    public RedisUpdateEvent(String redisKey,String databaseName,String tableName,Long id) {
+    public RedisUpdateEvent(String redisKey,String tableName,Long id) {
         super(EVENT_NAME, redisKey);
-        this.databaseName = databaseName;
         this.tableName = tableName;
         this.id = id;
     }
 
     public boolean hasNullValue(){
-        return this.id == null || StringUtils.isEmpty(tableName) || StringUtils.isEmpty(databaseName);
+        return this.id == null || StringUtils.isEmpty(tableName);
     }
 }

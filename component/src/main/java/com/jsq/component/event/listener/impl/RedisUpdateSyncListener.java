@@ -19,7 +19,7 @@ import org.springframework.scheduling.annotation.Async;
 public class RedisUpdateSyncListener implements ApplicationListener<RedisUpdateEvent> {
     private static final Logger logger = LoggerFactory.getLogger(RedisUpdateSyncListener.class);
     private static final String SELECT_SQL = "select * from `%s` where id = %s";
-    private static final String KEY_FORMAT= "%s:%s:%s";
+    private static final String KEY_FORMAT= "%s:%s";
     @Autowired
     private JdbcTemplate jdbcTemplate;
 

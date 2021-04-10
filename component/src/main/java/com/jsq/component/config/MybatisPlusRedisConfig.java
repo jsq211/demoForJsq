@@ -31,6 +31,10 @@ public class MybatisPlusRedisConfig {
         return new RedisUtil(redisTemplate);
     }
     @Bean
+    public MybatisComponentScanRegister mybatisComponentScanRegister(){
+        return new MybatisComponentScanRegister();
+    }
+    @Bean
     @ConditionalOnBean(name ="redisSyncUtil")
     public MybatisSyncComponent mybatisSyncComponent(RedisUtil redisUtil){
         return new MybatisSyncComponent(redisUtil);

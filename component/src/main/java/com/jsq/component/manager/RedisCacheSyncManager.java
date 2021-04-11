@@ -3,8 +3,9 @@ package com.jsq.component.manager;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.jsq.component.annotation.RedisCacheInput;
+import com.jsq.component.config.MybatisPlusSyncProperties;
+import com.jsq.component.dto.RedisPropertyDTO;
 import com.jsq.component.util.RedisUtil;
 import com.jsq.component.util.SpringUtil;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -14,9 +15,11 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author jsq
@@ -44,7 +47,9 @@ public class RedisCacheSyncManager {
         if (CollectionUtils.isEmpty(objectList)){
             return;
         }
-        logger.info("init object :{}", JSON.toJSONString(objectList));
+        if (MybatisPlusSyncProperties.getInstance().logEnabled()){
+            logger.info("init object :{}", JSON.toJSONString(objectList));
+        }
         objectList.forEach(this::init);
     }
 
@@ -52,47 +57,52 @@ public class RedisCacheSyncManager {
         if (Objects.isNull(object)){
             return;
         }
-        logger.info("init object :{}", JSON.toJSONString(object));
+        if (MybatisPlusSyncProperties.getInstance().logEnabled()){
+            logger.info("init object :{}", JSON.toJSONString(object));
+        }
         Class<?> clazz = object.getClass();
-        Map<String, String> fieldMap = Maps.newHashMap();
-        Map<String, RedisCacheInput> redisCacheInputMap = Maps.newHashMap();
+        List<RedisPropertyDTO> propertyList = Lists.newArrayList();
         Field[] fields = clazz.getDeclaredFields();
-        List<String> redisKeys = addRedisKeys(object,fields,fieldMap,redisCacheInputMap);
+        List<String> redisKeys = addRedisKeys(object,fields,propertyList);
         if (CollectionUtils.isEmpty(redisKeys)){
             return;
         }
+        Map<String,List<RedisPropertyDTO>> redisMap = propertyList.stream().collect(Collectors.groupingBy(RedisPropertyDTO::getRedisKey));
         for (String redisKey: redisKeys) {
             Object obj = RedisUtil.getInstance().getObj(redisKey);
             if (Objects.isNull(obj)){
                 continue;
             }
-            String fieldName = fieldMap.get(redisKey);
-            RedisCacheInput redisCacheInput = redisCacheInputMap.get(redisKey);
+            List<RedisPropertyDTO> redisPropertyList = redisMap.get(redisKey);
             if ( obj instanceof JSONObject){
-                Object value = ((JSONObject) obj).get(redisCacheInput.outPutKey());
-                setFieldValue(object,fieldName,value);
+                redisPropertyList.forEach(redisProperty -> {
+                    Object value = ((JSONObject) obj).get(redisProperty.getOutPutKey());
+                    setFieldValue(object,redisProperty.getFieldName(),value);
+                });
                 continue;
             }
             if (obj instanceof Map){
-                Object value = ((Map) obj).get(redisCacheInput.outPutKey());
-                setFieldValue(object,fieldName,value);
+                redisPropertyList.forEach(redisProperty -> {
+                    Object value = ((Map) obj).get(redisProperty.getOutPutKey());
+                    setFieldValue(object,redisProperty.getFieldName(),value);
+                });
             }
         }
     }
 
-    private List<String> addRedisKeys(Object object, Field[] fields, Map<String, String> fieldMap,
-                                      Map<String, RedisCacheInput> redisCacheInputMap) {
+    private List<String> addRedisKeys(Object object, Field[] fields, List<RedisPropertyDTO> propertyList) {
         List<String> redisKeys = Lists.newArrayList();
         for(Field field : fields){
             if (field.isAnnotationPresent(RedisCacheInput.class)){
                 String redisKey = getRedisKey(object,field,redisKeys);
                 if (!StringUtils.isEmpty(redisKey)){
-                    fieldMap.put(redisKey,field.getName());
-                    redisCacheInputMap.put(redisKey,field.getAnnotation(RedisCacheInput.class));
+                    propertyList.add(new RedisPropertyDTO(field.getName(),
+                            field.getAnnotation(RedisCacheInput.class).outPutKey()
+                            ,redisKey));
                 }
             }
         }
-        getParentField(object, fieldMap,redisCacheInputMap,redisKeys);
+        getParentField(object, propertyList,redisKeys);
         return redisKeys;
     }
 
@@ -107,33 +117,40 @@ public class RedisCacheSyncManager {
         } catch (Exception e) {
             logger.warn("redisKey convert error,msg:{}",e.getMessage());
         }
-        return null;
+        return "";
     }
 
-    private void getParentField(Object object, Map<String, String> fieldMap, Map<String, RedisCacheInput> redisCacheInputMap, List<String> redisKeys){
+    private void getParentField(Object object,List<RedisPropertyDTO> propertyList, List<String> redisKeys){
         Class<?> clazz = object.getClass();
         Class<?> superClazz = clazz.getSuperclass();
         Field[] superFields = superClazz.getDeclaredFields();
         if (superFields.length>0) {
             for(Field field : superFields){
                 if (field.isAnnotationPresent(RedisCacheInput.class)) {
-                    String redisCacheInput = getRedisKey(object,field,redisKeys);
-                    if (StringUtils.isEmpty(redisCacheInput)){
+                    String redisKey = getRedisKey(object,field,redisKeys);
+                    if (StringUtils.isEmpty(redisKey)){
                         continue;
                     }
-                    fieldMap.put(redisCacheInput,field.getName());
-                    redisCacheInputMap.put(redisCacheInput,field.getAnnotation(RedisCacheInput.class));
+                    propertyList.add(new RedisPropertyDTO(field.getName(),
+                            field.getAnnotation(RedisCacheInput.class).outPutKey(),
+                            redisKey));
                 }
             }
-            getParentField(superClazz, fieldMap, redisCacheInputMap, redisKeys);
+            getParentField(superClazz, propertyList, redisKeys);
         }
     }
 
     private void setFieldValue(Object obj, String fieldName, Object value) {
         try {
-            PropertyUtils.setProperty(obj,fieldName,value);
+            Class type = PropertyUtils.getPropertyType(obj,fieldName);
+            if (type == Date.class){
+                PropertyUtils.setProperty(obj,fieldName,new Date(Long.parseLong((String) value)));
+            }else {
+                PropertyUtils.setProperty(obj,fieldName,value);
+            }
         } catch (Exception e) {
             logger.warn("set value failed ,msg:{}",e.getMessage());
         }
     }
+
 }

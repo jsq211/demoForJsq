@@ -4,9 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.jsq.component.annotation.RedisCacheInput;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 /**
  * @author jsq

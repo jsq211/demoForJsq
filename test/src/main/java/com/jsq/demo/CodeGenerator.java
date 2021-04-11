@@ -54,7 +54,7 @@
 //        strategy.setNaming(NamingStrategy.underline_to_camel);
 //        strategy.setColumnNaming(NamingStrategy.underline_to_camel);
 //        strategy.setEntityLombokModel(true);
-//        strategy.setSuperMapperClass("com.jsq.component.mybasedao.MyBaseDAO");
+//        strategy.setSuperMapperClass("MyBaseDAO");
 //        // 写于父类中的公共字段
 //        strategy.setControllerMappingHyphenStyle(true);
 //        strategy.setTablePrefix(pc.getModuleName() + "_");

@@ -1,5 +1,6 @@
 package com.jsq.component.config;
 
+import com.jsq.component.event.listener.impl.RedisInsertSyncListener;
 import com.jsq.component.event.listener.impl.RedisUpdateSyncListener;
 import com.jsq.component.interceptor.MybatisSyncInterceptor;
 import com.jsq.component.manager.RedisCacheManualManager;
@@ -30,14 +31,11 @@ public class MybatisPlusRedisConfig {
     public RedisUtil redisUtil(@Qualifier(value = "redisSyncTemplate") RedisTemplate<String,Object> redisTemplate){
         return new RedisUtil(redisTemplate);
     }
-    @Bean
-    public MybatisComponentScanRegister mybatisComponentScanRegister(){
-        return new MybatisComponentScanRegister();
-    }
+
     @Bean
     @ConditionalOnBean(name ="redisSyncUtil")
-    public MybatisSyncComponent mybatisSyncComponent(RedisUtil redisUtil){
-        return new MybatisSyncComponent(redisUtil);
+    public MybatisSyncComponent mybatisSyncComponent(RedisUtil redisUtil,MybatisPlusSyncProperties mybatisPlusSyncProperties){
+        return new MybatisSyncComponent(redisUtil, mybatisPlusSyncProperties);
     }
 
     @Bean
@@ -45,7 +43,11 @@ public class MybatisPlusRedisConfig {
     public RedisUpdateSyncListener redisUpdateSyncListener(){
         return new RedisUpdateSyncListener();
     }
-
+    @Bean
+    @ConditionalOnBean(MybatisSyncComponent.class)
+    public RedisInsertSyncListener redisInsertSyncListener(){
+        return new RedisInsertSyncListener();
+    }
     @Bean("redisAsyncTaskExecutor")
     @ConditionalOnBean(RedisUpdateSyncListener.class)
     public ThreadPoolTaskExecutor redisAsyncTaskExecutor() {

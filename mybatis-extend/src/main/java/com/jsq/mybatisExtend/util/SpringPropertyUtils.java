@@ -1,4 +1,4 @@
-package com.jsq.component.util;
+package com.jsq.mybatisExtend.util;
 
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.core.io.ClassPathResource;

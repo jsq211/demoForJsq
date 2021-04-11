@@ -2,7 +2,6 @@ package com.jsq.demo.pojo;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.jsq.component.annotation.RedisCacheInput;
-import lombok.Data;
 
 import java.util.Date;
 

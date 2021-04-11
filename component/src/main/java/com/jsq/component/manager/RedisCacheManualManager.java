@@ -2,8 +2,8 @@ package com.jsq.component.manager;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
-import com.jsq.component.config.DatabaseConfig;
-import com.jsq.component.config.MybatisPlusSyncProps;
+import com.jsq.component.config.MybatisPlusSyncProperties;
+import com.jsq.component.util.BeanUtil;
 import com.jsq.component.util.RedisUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,8 +15,6 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * 手动触发同步更新
@@ -29,8 +27,6 @@ public class RedisCacheManualManager {
     private static final Integer SIZE = 1000;
     private final JdbcTemplate jdbcTemplate;
 
-    private static Pattern linePattern = Pattern.compile("_(\\w)");
-
     private static final Logger logger = LoggerFactory.getLogger(RedisCacheManualManager.class);
 
     public RedisCacheManualManager(JdbcTemplate jdbcTemplate) {
@@ -39,12 +35,12 @@ public class RedisCacheManualManager {
 
     public void manualAll(Set<String> tableSet){
         logger.info("redis syn start,table:{}",tableSet);
-        if (!MybatisPlusSyncProps.getInstance().isEnabled()||CollectionUtils.isEmpty(tableSet)){
+        if (!MybatisPlusSyncProperties.getInstance().isEnabled()||CollectionUtils.isEmpty(tableSet)){
             logger.info("redis syn end...");
             return;
         }
         if (tableSet.contains("*")){
-            tableSet = MybatisPlusSyncProps.getInstance().getTableList();
+            tableSet = MybatisPlusSyncProperties.getInstance().getTableList();
         }
         tableSet.forEach(table->{
             logger.info("redis syn table:【{}】",table);
@@ -75,21 +71,12 @@ public class RedisCacheManualManager {
             int columnCount=rsMeta.getColumnCount();
             JSONObject jsonObject = new JSONObject();
             for (int i=1; i<=columnCount; i++) {
-                jsonObject.put(convertName(rsMeta.getColumnLabel(i)),insertList.getString(i));
+                jsonObject.put(BeanUtil.convertName(rsMeta.getColumnLabel(i)),insertList.getString(i));
             }
             map.put(keyPrefix+jsonObject.getString("id"),jsonObject);
         }
         return map;
     }
 
-    private String convertName(String columnLabel) {
-        columnLabel = columnLabel.toLowerCase();
-        Matcher matcher = linePattern.matcher(columnLabel);
-        StringBuffer sb = new StringBuffer();
-        while (matcher.find()) {
-            matcher.appendReplacement(sb, matcher.group(1).toUpperCase());
-        }
-        matcher.appendTail(sb);
-        return sb.toString();
-    }
+
 }

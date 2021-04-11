@@ -6,12 +6,15 @@ import org.springframework.beans.BeanWrapperImpl;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * copy
  * @author jsq
  */
 public class BeanUtil extends BeanUtils {
+    private static Pattern linePattern = Pattern.compile("_(\\w)");
 
     public static void copyPropertiesIgnoreNull(Object source, Object target) {
         BeanUtils.copyProperties(source, target, getNullPropertyNames(source));
@@ -30,5 +33,17 @@ public class BeanUtil extends BeanUtils {
         }
         String[] result = new String[emptyNames.size()];
         return emptyNames.toArray(result);
+    }
+
+
+    public static String convertName(String columnLabel) {
+        columnLabel = columnLabel.toLowerCase();
+        Matcher matcher = linePattern.matcher(columnLabel);
+        StringBuffer sb = new StringBuffer();
+        while (matcher.find()) {
+            matcher.appendReplacement(sb, matcher.group(1).toUpperCase());
+        }
+        matcher.appendTail(sb);
+        return sb.toString();
     }
 }

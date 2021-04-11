@@ -1,6 +1,6 @@
 package com.jsq.demo.dao;
 
-import com.jsq.component.mybasedao.MyBaseDAO;
+import com.jsq.mybatisExtend.mybasedao.MyBaseDAO;
 import com.jsq.demo.pojo.TestPO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

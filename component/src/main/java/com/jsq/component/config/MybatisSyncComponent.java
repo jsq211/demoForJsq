@@ -3,6 +3,7 @@ package com.jsq.component.config;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.google.common.collect.Lists;
+import com.jsq.component.event.RedisInsertEvent;
 import com.jsq.component.event.RedisUpdateEvent;
 import com.jsq.component.util.BeanUtil;
 import com.jsq.component.util.RedisUtil;
@@ -17,11 +18,9 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,76 +33,40 @@ import java.util.regex.Pattern;
 @SuppressWarnings("all")
 public class MybatisSyncComponent implements ApplicationEventPublisherAware, AsyncConfigurer {
 
-    private static volatile Boolean NOT_ALLOWED = null;
-    private static volatile Set<String> TABLE_SET = null;
-    private static volatile String PREFIX = null;
-    private static final String KEY_FORMAT= "%s:%s:%s";
-
+    private static final String KEY_FORMAT= "%s:%s";
     private static final Logger logger = LoggerFactory.getLogger(MybatisSyncComponent.class);
-
-
     private final RedisUtil redisUtil;
+    private final MybatisPlusSyncProperties mybatisPlusSyncProperties;
     private ApplicationEventPublisher applicationEventPublisher;
 
-    public MybatisSyncComponent(RedisUtil redisUtil) {
+    public MybatisSyncComponent(RedisUtil redisUtil, MybatisPlusSyncProperties mybatisPlusSyncProperties) {
         this.redisUtil = redisUtil;
+        this.mybatisPlusSyncProperties = mybatisPlusSyncProperties;
     }
 
-    private static boolean notAllowed(){
-        if (null == NOT_ALLOWED){
-            synchronized (MybatisSyncComponent.class){
-                if (null == NOT_ALLOWED){
-                    NOT_ALLOWED = !MybatisPlusSyncProps.getInstance().isEnabled();
-                }
-            }
-        }
-        return NOT_ALLOWED;
+    private boolean notAllowed(){
+        return !mybatisPlusSyncProperties.getEnabled();
     }
 
-
-    private static Set<String> tableList(){
-        if (null == TABLE_SET){
-            synchronized (MybatisSyncComponent.class){
-                if (null == TABLE_SET){
-                    TABLE_SET = MybatisPlusSyncProps.getInstance().getTableList();
-                }
-            }
-        }
-        return TABLE_SET;
-    }
-
-    private static String getPrefix(){
-        if (null == PREFIX){
-            synchronized (MybatisSyncComponent.class){
-                if (null == PREFIX){
-                    PREFIX = MybatisPlusSyncProps.getInstance().getPrefix();
-                }
-            }
-        }
-        return PREFIX;
-    }
     public void insertRedis(Object parameter, ParameterMap parameterMap) {
         if (notAllowed()){
             return;
         }
         String table = getTableName(parameterMap);
-
-        if (!CollectionUtils.isEmpty(tableList())&&(TABLE_SET.contains(table))){
+        if (mybatisPlusSyncProperties.containTable(table)){
             if (parameter instanceof Map){
                 setRedisList(parameter,table);
             }
             setRedisSingle(parameter,table);
             return;
         }
-
-        if (StringUtils.isNullOrEmpty(getPrefix()) && table.startsWith(getPrefix())){
-            if (parameter instanceof Map){
-                setRedisList(parameter,table);
-            }
-            setRedisSingle(parameter,table);
-        }
     }
 
+    /**
+     * 获取表名
+     * @param parameterMap
+     * @return tableName
+     */
     private String getTableName(ParameterMap parameterMap) {
         Class<?> clazz = parameterMap.getType();
         try {
@@ -137,7 +100,7 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware, Asy
     private void setRedisSingle(Object parameter, String tableName) {
         try {
             String id = String.valueOf(PropertyUtils.getProperty(parameter,"id"));
-            redisUtil.set(String.format(KEY_FORMAT,tableName,id), JSONObject.toJSON(parameter));
+            applicationEventPublisher.publishEvent(new RedisInsertEvent(tableName,id));
         } catch (Exception e) {
             logger.info("sync failed message:{}",e.getMessage());
         }
@@ -160,7 +123,7 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware, Asy
             return;
         }
         String table = getTableName(parameterMap);
-        if (!CollectionUtils.isEmpty(tableList())&&(TABLE_SET.contains(table))){
+        if (mybatisPlusSyncProperties.containTable(table)){
             if (parameter instanceof Map){
                 updateRedisList(parameter,table);
                 return;
@@ -168,15 +131,6 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware, Asy
             updateRedisSingle(parameter,table);
             return;
         }
-
-        if (StringUtils.isNullOrEmpty(getPrefix()) && table.startsWith(getPrefix())){
-            if (parameter instanceof Map){
-                updateRedisList(parameter,table);
-                return;
-            }
-            updateRedisSingle(parameter,table);
-        }
-
     }
 
     private void updateRedisSingle(Object parameter, String tableName) {
@@ -184,7 +138,7 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware, Asy
             String id = String.valueOf(PropertyUtils.getProperty(parameter,"id"));
             String redisKey = String.format(KEY_FORMAT,tableName,id);
             Object object = redisUtil.getObj(redisKey);
-            Boolean isDelete = MybatisPlusSyncProps.getInstance().isLogicDelete(parameter);
+            Boolean isDelete = mybatisPlusSyncProperties.isLogicDelete(parameter);
             if (isDelete){
                 deleteRedisKey(redisKey);
                 return;
@@ -206,7 +160,7 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware, Asy
             for (Object obj:entityList ) {
                 String id = String.valueOf(PropertyUtils.getProperty(obj,"id"));
                 String redisKey = String.format(KEY_FORMAT,tableName,id);
-                Boolean isDelete = MybatisPlusSyncProps.getInstance().isLogicDelete(obj);
+                Boolean isDelete = mybatisPlusSyncProperties.isLogicDelete(obj);
                 if (isDelete){
                     deleteRedisKey(redisKey);
                     continue;
@@ -246,21 +200,13 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware, Asy
         if (notAllowed()){
             return;
         }
-        if (!CollectionUtils.isEmpty(tableList())&&(TABLE_SET.contains(table))){
+        if (mybatisPlusSyncProperties.containTable(table)){
             if (parameter instanceof Map){
                 deleteRedisList(parameter,table);
                 return;
             }
             deleteRedisSingle(parameter,table);
             return;
-        }
-
-        if (StringUtils.isNullOrEmpty(getPrefix()) && table.startsWith(getPrefix())){
-            if (parameter instanceof Map){
-                deleteRedisList(parameter,table);
-                return;
-            }
-            deleteRedisSingle(parameter,table);
         }
     }
 

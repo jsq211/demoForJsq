@@ -1,4 +1,4 @@
-package com.jsq.component.mybasedao;
+package com.jsq.mybatisExtend.mybasedao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Param;

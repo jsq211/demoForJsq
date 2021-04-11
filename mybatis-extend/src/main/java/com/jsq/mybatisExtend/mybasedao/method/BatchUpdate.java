@@ -1,4 +1,4 @@
-package com.jsq.component.mybasedao.method;
+package com.jsq.mybatisExtend.mybasedao.method;
 
 import com.baomidou.mybatisplus.core.enums.SqlMethod;
 import com.baomidou.mybatisplus.core.injector.AbstractMethod;

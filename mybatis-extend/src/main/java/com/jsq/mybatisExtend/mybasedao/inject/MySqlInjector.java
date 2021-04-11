@@ -1,11 +1,11 @@
-package com.jsq.component.mybasedao.inject;
+package com.jsq.mybatisExtend.mybasedao.inject;
 
 import com.baomidou.mybatisplus.core.injector.AbstractMethod;
 import com.baomidou.mybatisplus.core.injector.AbstractSqlInjector;
 import com.baomidou.mybatisplus.core.injector.methods.*;
-import com.jsq.component.mybasedao.method.BatchInsert;
-import com.jsq.component.mybasedao.method.BatchUpdate;
-import com.jsq.component.mybasedao.method.BatchUpdateIgnoreNull;
+import com.jsq.mybatisExtend.mybasedao.method.BatchInsert;
+import com.jsq.mybatisExtend.mybasedao.method.BatchUpdate;
+import com.jsq.mybatisExtend.mybasedao.method.BatchUpdateIgnoreNull;
 
 import java.util.List;
 import java.util.stream.Stream;

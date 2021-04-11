@@ -13,6 +13,7 @@
 
     <modules>
         <module>component</module>
+        <module>mybatis-extend</module>
         <module>test</module>
     </modules>
 

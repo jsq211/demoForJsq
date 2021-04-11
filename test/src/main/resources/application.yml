@@ -17,16 +17,17 @@ spring:
 jsq:
   sync:
     #扫描实体类路径
-    path: com.jsq.demo.pojo
+#    path: com.jsq.demo.pojo,com.jsq.dao
     #是否启用  false时关闭缓存同步
     enabled: true
     #缓存存入redis的库 默认为7
     database: 9
     #缓存表名，逗号分隔，该字段存在时对tableList中的表名进行缓存写入   优先级为tableList>prefix
     tableList:
-      - test:name,n
+      - test:name,n,createdDate
       - drools_rule:name
     #前缀写入，逗号分隔，以该前缀命名的表会进行同步，优先级低于tableList
     prefix: ums_
     #逻辑删除字段   字段需要统一，当缓存同步的表中出现该字段的更新时，会删除redis中对应的数据
-    logicDelete: enabled:false
+    logicDelete:
+      enabled: false

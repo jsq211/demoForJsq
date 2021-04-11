@@ -5,6 +5,7 @@ import com.jsq.demo.service.TestService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -35,7 +36,7 @@ public class TestController {
     @GetMapping("/batchUpdate")
     public Integer batchUpdate(){return testService.testBatchUpdate(); }
     @GetMapping("/cache")
-    public List<TestPO> cache(){return testService.cacheTest(); }
+    public List<TestPO> cache(@RequestParam("id")Long id){return testService.cacheTest(id); }
     @GetMapping("/testSync")
     public void testSync(){testService.testSync(); }
     @GetMapping("/batchDelete")

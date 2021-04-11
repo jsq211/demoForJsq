@@ -18,6 +18,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import java.util.concurrent.RejectedExecutionHandler;
+
 
 /**
  * mybatis-redis缓存配置
@@ -40,20 +42,20 @@ public class MybatisPlusRedisConfig {
 
     @Bean
     @ConditionalOnBean(MybatisSyncComponent.class)
-    public RedisUpdateSyncListener redisUpdateSyncListener(){
-        return new RedisUpdateSyncListener();
+    public RedisUpdateSyncListener redisUpdateSyncListener(JdbcTemplate jdbcTemplate, MybatisPlusSyncProperties mybatisPlusSyncProperties){
+        return new RedisUpdateSyncListener(jdbcTemplate, mybatisPlusSyncProperties);
     }
     @Bean
     @ConditionalOnBean(MybatisSyncComponent.class)
-    public RedisInsertSyncListener redisInsertSyncListener(){
-        return new RedisInsertSyncListener();
+    public RedisInsertSyncListener redisInsertSyncListener(JdbcTemplate jdbcTemplate, MybatisPlusSyncProperties mybatisPlusSyncProperties){
+        return new RedisInsertSyncListener(jdbcTemplate,mybatisPlusSyncProperties);
     }
     @Bean("redisAsyncTaskExecutor")
     @ConditionalOnBean(RedisUpdateSyncListener.class)
     public ThreadPoolTaskExecutor redisAsyncTaskExecutor() {
         ThreadPoolTaskExecutor factory = new ThreadPoolTaskExecutor();
         factory.setThreadNamePrefix("redis-async-");
-        factory.setCorePoolSize(2);
+        factory.setCorePoolSize(3);
         factory.setMaxPoolSize(4);
         factory.initialize();
         return factory;

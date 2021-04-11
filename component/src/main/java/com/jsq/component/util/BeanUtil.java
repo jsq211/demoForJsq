@@ -1,8 +1,10 @@
 package com.jsq.component.util;
 
+import com.alibaba.fastjson.JSONObject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -45,5 +47,19 @@ public class BeanUtil extends BeanUtils {
         }
         matcher.appendTail(sb);
         return sb.toString();
+    }
+
+    public static JSONObject convertRedisObject(SqlRowSet sqlRowSet,Set<String> props) {
+        JSONObject redisObject = new JSONObject();
+        while (sqlRowSet.next()){
+            for (String columnName: sqlRowSet.getMetaData().getColumnNames()) {
+                String name = BeanUtil.convertName(columnName);
+                if (props.contains(name)){
+                    Object target = sqlRowSet.getObject(columnName);
+                    redisObject.put(name,target);
+                }
+            }
+        }
+        return redisObject;
     }
 }

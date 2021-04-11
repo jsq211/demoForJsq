@@ -165,13 +165,7 @@ public class MybatisSyncComponent implements ApplicationEventPublisherAware, Asy
                     deleteRedisKey(redisKey);
                     continue;
                 }
-                Object object = redisUtil.getObj(redisKey);
-                if (null == object){
-                    applicationEventPublisher.publishEvent(new RedisUpdateEvent(redisKey,tableName,Long.valueOf(id)));
-                    continue;
-                }
-                BeanUtil.copyPropertiesIgnoreNull(obj,object);
-                redisUtil.set(redisKey,JSONObject.toJSON(object));
+                applicationEventPublisher.publishEvent(new RedisUpdateEvent(redisKey,tableName,Long.valueOf(id)));
             }
 
         } catch (Exception e) {

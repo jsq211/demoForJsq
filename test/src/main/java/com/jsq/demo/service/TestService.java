@@ -51,8 +51,7 @@ public class TestService {
     }
 
     public Integer testBatchUpdate() {
-
-        List<TestPO> testPOList = createPOUpdate(Lists.newArrayList(59L,60L));
+        List<TestPO> testPOList = createPOUpdate(Lists.newArrayList(100L,101L));
         return testMapper.batchUpdateIgnoreNull(testPOList);
     }
 
@@ -62,6 +61,7 @@ public class TestService {
             TestPO po = new TestPO();
             po.setEnabled(false);
             po.setId(e);
+            po.setCreatedDate(new Date());
             testPOList.add(po);
         });
         return testPOList;
